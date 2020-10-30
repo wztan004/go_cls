@@ -1,0 +1,1 @@
+My app Name 2020/10/30 01:04:03 log.go:40: Starting

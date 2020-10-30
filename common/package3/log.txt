@@ -1,0 +1,2 @@
+My app Name 2020/10/30 01:05:36 main.go:41: Starting
+My app Name 2020/10/30 01:06:16 main.go:41: Starting

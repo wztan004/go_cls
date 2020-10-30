@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+    {{$username := .MyUser.Username}}
+    {{template "menu"}}
+
+    <h2>Welcome, {{.MyUser.First}} {{.MyUser.Last}}</h2>
+
+    {{if .MyUser.First}}
+        {{if .VenueNames}}
+            <h2>Bookings by you, username: {{$username}}</h2>
+            {{range .VenueUser}}
+                <li>Booked {{.Capacity}} on {{.Date}}. Bookng ID is {{.ID}}</li>
+            {{end}}
+
+            <h2>All bookings (including you and others)</h2>
+            {{range .VenueAll}}
+                <li>Booked {{.Capacity}} on {{.Date}}</li>
+            {{end}}
+        {{else}}
+        <h2>You have not made any bookings</h2>
+        {{end}}
+
+        <br>
+        <h2>Add a Booking</h2>
+        <form method="post">
+            <input type="text" name="date" placeholder="date"><br>
+            <input type="text" name="capacity" placeholder="capacity"><br>
+        <input type="submit">
+        </form>
+    {{else}}
+    {{end}}
+</body>
+</html>
