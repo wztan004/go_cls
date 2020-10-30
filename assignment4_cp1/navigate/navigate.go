@@ -1,4 +1,4 @@
-package nav
+package navigate
 
 import (
 	"fmt"
@@ -10,14 +10,11 @@ import (
 	regex "assignment4_cp1/regex"
 )
 
-var tpl *template.Template
+var tpl *template.Template = template.Must(template.ParseGlob("templates/*"))
 var mapUsers = map[string]ds.User{}
 var mapSessions = map[string]string{}
 var mData ds.Data
 
-func init() {
-	tpl = template.Must(template.ParseGlob("templates/*"))
-}
 
 func Q(res http.ResponseWriter, req *http.Request) {
 	tpl.ExecuteTemplate(res, "empty.gohtml", nil)

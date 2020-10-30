@@ -1,4 +1,4 @@
-// global variables
+// creating a global variable from another package
 
 package main
 

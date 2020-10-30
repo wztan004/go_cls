@@ -1,34 +1,31 @@
 package main
 
 import (
-	nav "assignment4_cp1/Navigation"
-	"html/template"
+	"assignment4_cp1/navigate"
 	"net/http"
 	"golang.org/x/crypto/bcrypt"
 	ds "assignment4_cp1/dataStruct"
 )
 
-var tpl *template.Template
+// var tpl *template.Template
 var venues = []ds.Venue{}
 var mapUsers = map[string]ds.User{}
 var mData ds.Data
 
 func init() {
-	// Create credentials for admin
-	tpl = template.Must(template.ParseGlob("templates/*"))
 	bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
 	mapUsers["admin"] = ds.User{"admin", bPassword, "admin", "admin"}
 	mData.VenueNames = make(map[string][]ds.Venue)
 }
 
 func main() {
-	http.HandleFunc("/", nav.Index)
-	http.HandleFunc("/names", nav.Names)
-	http.HandleFunc("/restricted", nav.Restricted)
-	http.HandleFunc("/signup", nav.Signup)
-	http.HandleFunc("/login", nav.Login)
-	http.HandleFunc("/logout", nav.Logout)
-	http.HandleFunc("/remove", nav.Remove)
+	http.HandleFunc("/", navigate.Index)
+	http.HandleFunc("/names", navigate.Names)
+	http.HandleFunc("/restricted", navigate.Restricted)
+	http.HandleFunc("/signup", navigate.Signup)
+	http.HandleFunc("/login", navigate.Login)
+	http.HandleFunc("/logout", navigate.Logout)
+	http.HandleFunc("/remove", navigate.Remove)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
-	http.ListenAndServeTLS(":5221", "Https/cert.pem", "Https/key.pem", nil)
+	http.ListenAndServeTLS(":5221", "security/cert.pem", "security/key.pem", nil)
 }

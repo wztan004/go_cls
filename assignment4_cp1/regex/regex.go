@@ -75,7 +75,6 @@ func VerifyPassword(password string) (bool, error) {
 		}
 	}
 
-	finalErr = ""
 	appendError := func (checkErr string) {
 		if len(finalErr) > 0 {
 			finalErr = finalErr[:len(finalErr)-2]

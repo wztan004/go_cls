@@ -2,7 +2,8 @@ package allmustbesameunderfoo
 
 import "fmt"
 
-// FooOne e
+const boilingF = 212.0
+
 func FooOne() {
     fmt.Println("Foo")
     FooTwo()
