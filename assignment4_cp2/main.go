@@ -1,9 +1,9 @@
 package main
 
 import (
-	"assignment4_cp1/route"
+	"assignment4_cp2/route"
 	"net/http"
-	ds "assignment4_cp1/dataStruct"
+	ds "assignment4_cp2/dataStruct"
 	"log"
 )
 

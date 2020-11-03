@@ -10,7 +10,8 @@ import (
 )
 
 
-// Given a slice "hello", "greetings", "good day", loop it such that "good day doesn't appear thrice"
+// Given a slice "hello", "greetings", "good day", start a goroutine for each of them
+// Ensure that "good day doesn't appear thrice"
 func main() {
 	var wg sync.WaitGroup
 

@@ -1,5 +1,5 @@
-// Mutex and waitgroups
-// Concurrency in Go: Tools and Techniques for Developers
+// RWMutex
+// Concurrency in Go: Tools and Techniques for Developers, p49
 
 package main
 
@@ -16,9 +16,9 @@ func main() {
 	producer := func(wg *sync.WaitGroup, l sync.Locker) {
 		defer wg.Done()
 		for i := 5; i > 0; i-- {
-		l.Lock()
-		l.Unlock()
-		time.Sleep(1)
+			l.Lock()
+			l.Unlock()
+			time.Sleep(1)
 		}
 	}
 
@@ -34,7 +34,7 @@ func main() {
 		beginTestTime := time.Now()
 		go producer(&wg, mutex)
 		for i := count; i > 0; i-- {
-		go observer(&wg, rwMutex)
+			go observer(&wg, rwMutex)
 		}
 		wg.Wait()
 		return time.Since(beginTestTime)

@@ -7,11 +7,11 @@ import (
 	"net/http"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
-	ds "assignment4_cp1/dataStruct"
-	"assignment4_cp1/utils"
+	ds "assignment4_cp2/dataStruct"
+	"assignment4_cp2/utils"
 	"log"
 	"os"
-	"assignment4_cp1/constants"
+	"assignment4_cp2/constants"
 	"io"
 )
 
@@ -23,6 +23,7 @@ var wlog *log.Logger // Be concerned
 var elog *log.Logger // Critical problem
 
 func init() {
+	utils.WriteUser()
 	mData.VenueNames = make(map[string][]ds.Venue)
 	if _, ok := mapUsers["admin"]; !ok {
 		fmt.Println("navigate > Index > Creating admin account")
@@ -38,20 +39,20 @@ func init() {
 	elog = log.New(io.MultiWriter(file, os.Stderr), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-func setSession(userName string, response http.ResponseWriter) {
-	fmt.Println("setSession")
-	value := map[string]string{
-		"name": userName,
-	}
-	if encoded, err := cookieHandler.Encode("session", value); err == nil {
-		cookie := &http.Cookie{
-			Name:  "session",
-			Value: encoded,
-			Path:  "/",
-		}
-		http.SetCookie(response, cookie)
-	}
-}
+// func setSession(userName string, response http.ResponseWriter) {
+// 	fmt.Println("setSession")
+// 	value := map[string]string{
+// 		"name": userName,
+// 	}
+// 	if encoded, err := cookieHandler.Encode("session", value); err == nil {
+// 		cookie := &http.Cookie{
+// 			Name:  "session",
+// 			Value: encoded,
+// 			Path:  "/",
+// 		}
+// 		http.SetCookie(response, cookie)
+// 	}
+// }
 
 // Signup allows users to sign up
 func Signup(res http.ResponseWriter, req *http.Request) {
@@ -128,9 +129,10 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 
 // Index k
 func Index(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("navigate > Index > Start of index")
+	fmt.Println("navigate > Index (Start)")
 	if !alreadyLoggedIn(req) {
 		// Checks if admin user is already created
+		fmt.Println("navigate > Index > !alreadyLoggedIn")
 		http.Redirect(res, req, "/login", http.StatusSeeOther)
 		return
 	}
@@ -205,39 +207,41 @@ func Index(res http.ResponseWriter, req *http.Request) {
 }
 
 
+
+
 // Login : allows log in
 func Login(res http.ResponseWriter, req *http.Request) {
 	if alreadyLoggedIn(req) {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-
-	
 	// process form submission
 	if req.Method == http.MethodPost {
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 
-		// check if user exist with username
+		// Check if username exists
 		myUser, ok := mapUsers[username]
 		if !ok {
-			// http.Error(res, "Username and/or password do not match", http.StatusForbidden)
 			tpl.ExecuteTemplate(res, "login.gohtml", "Please sign up for an account first!")
 			return
 		}
-		// Matching of password entered
+
+		// Check if password matches
 		err := bcrypt.CompareHashAndPassword(myUser.Password, []byte(password))
 		if err != nil {
-			wlog.Println("login failed")
+			wlog.Println("login failed using username:", username)
 			tpl.ExecuteTemplate(res, "login.gohtml", "Username and/or password do not match!")
 			return
 		}
-		// create session
+
+		// User authentication successful
 		id, _ := uuid.NewV4()
 		myCookie := &http.Cookie{
 			Name:  "myCookie",
 			Value: id.String(),
 		}
+
 		http.SetCookie(res, myCookie)
 		mapSessions[myCookie.Value] = username
 		http.Redirect(res, req, "/", http.StatusSeeOther)

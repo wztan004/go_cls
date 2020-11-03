@@ -3,7 +3,7 @@ package route
 import (
 	"fmt"
 	"net/http"
-	ds "assignment4_cp1/dataStruct"
+	ds "assignment4_cp2/dataStruct"
 )
 
 // ChangeName allows the user to change names

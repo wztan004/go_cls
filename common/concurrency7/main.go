@@ -1,5 +1,5 @@
 // Cond
-// Concurrency in Go: Tools and Techniques for Developers
+// Concurrency in Go: Tools and Techniques for Developers, p54
 
 package main
 

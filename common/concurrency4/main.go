@@ -1,5 +1,5 @@
 // Add multiple goroutines at once
-// Concurrency in Go: Tools and Techniques for Developers
+// Concurrency in Go: Tools and Techniques for Developers, p48
 
 package main
 
@@ -7,6 +7,11 @@ import (
 	"fmt"
 	"sync"
 )
+
+// Run a goroutine hello() 5 times.
+// hello() is an inner function and runs fmt.Printf("Hello from %v!\n", id)
+// Call wg.Add() once only, instead of once per goroutine
+
 
 func main() {
 	hello := func(wg *sync.WaitGroup, id int) {

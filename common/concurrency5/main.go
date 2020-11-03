@@ -1,5 +1,5 @@
 // Mutex and waitgroups
-// Concurrency in Go: Tools and Techniques for Developers
+// Concurrency in Go: Tools and Techniques for Developers, p49
 
 package main
 
