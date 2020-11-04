@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	ds "assignment4_cp2/dataStruct"
 	"assignment4_cp2/utils"
@@ -23,13 +23,13 @@ var wlog *log.Logger // Be concerned
 var elog *log.Logger // Critical problem
 
 func init() {
-	utils.WriteUser()
+	utils.InitializeUsers()
 	mData.VenueNames = make(map[string][]ds.Venue)
-	if _, ok := mapUsers["admin"]; !ok {
-		fmt.Println("navigate > Index > Creating admin account")
-		bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
-		mapUsers["admin"] = ds.User{"admin", bPassword, "admin", "admin"}
-	}
+	// if _, ok := mapUsers["admin"]; !ok {
+	// 	fmt.Println("navigate > Index > Creating admin account")
+	// 	bPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.MinCost)
+	// 	mapUsers["admin"] = ds.User{"admin", bPassword, "admin", "admin"}
+	// }
 	file, err := os.OpenFile(constants.LOG_FILE, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(err)
@@ -125,6 +125,7 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 	}
 	tpl.ExecuteTemplate(res, "signup.gohtml", myUser)
 }
+
 
 
 // Index k

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/csv"
-	// "fmt"
+	"fmt"
 	"log"
 	"os"
 	"golang.org/x/crypto/bcrypt"
@@ -56,6 +56,8 @@ func InitializeUsers() {
 		}
 	}
 	writer.Flush()
+
+	fmt.Println("users initialized")
 }
 
 // WriteCSV returns error if len(input) doesn't match csv columns
@@ -106,7 +108,7 @@ func ReadUserCSV() [][]string {
 }
 
 
-func GetUser(username string) (User, error) {
+func GetUserCSV(username string) (User, error) {
 	// reading a CSV file
 	file, err := os.Open(`security/users.csv`)
 	if err != nil {
