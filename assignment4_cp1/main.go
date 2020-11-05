@@ -23,7 +23,7 @@ func main() {
 	http.HandleFunc("/logout", route.Logout)
 	http.HandleFunc("/remove", route.Remove)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
-	err := http.ListenAndServeTLS(":5221", "security/cert.pem", "security/key.pem", nil)
+	err := http.ListenAndServeTLS(":5221", "confidential/cert.pem", "confidential/key.pem", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

@@ -18,20 +18,26 @@ import (
 func main() {
 	ll := datastruct.NewLinkedList()
 
-	s := datastruct.Session{"ID1", "node1", time.Now()}
-	ll.EnqueueSession(s)
+	s1 := datastruct.Session{"ID1", "node1", time.Now()}
+	ll.EnqueueSession(s1)
+	
+	s2 := datastruct.Session{"ID2", "node2", time.Now()}
+	ll.EnqueueSession(s2)
 
-	s = datastruct.Session{"ID2", "node2", time.Now()}
-	ll.EnqueueSession(s)
+	s3 := datastruct.Session{"ID3", "node3", time.Now()}
+	ll.EnqueueSession(s3)
 
-	s = datastruct.Session{"ID3", "node3", time.Now()}
-	ll.EnqueueSession(s)
 
-	ll.Remove("ID1")
+	ll.Remove("node3")
 
-	s1, _ := ll.GetAllID()
-	fmt.Println(s1)
+	s4 := datastruct.Session{"ID4", "node4", time.Now()}
+	ll.EnqueueSession(s4)
 
+	s, _ := ll.GetAllID()
+	fmt.Println("All nodes", s)
+	fmt.Println("size", ll.Size)
+	fmt.Println("head", ll.Head.Session.Username)
+	fmt.Println("tail", ll.Tail.Session.Username)
 }
 
 

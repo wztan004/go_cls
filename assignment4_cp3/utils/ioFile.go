@@ -6,22 +6,16 @@ import (
 	"log"
 	"os"
 	"errors"
+	"assignment4_cp3/datastruct"
 )
 
-type User struct {
-	IC			string
-	Email		string
-	Firstname	string
-	Lastname	string
-	Username	string
-	Password	string
-}
+
 
 func InitializeUsers() {
 	bPassword := Encrypt("password")
 
-	allUsers := []User{
-		User{
+	allUsers := []datastruct.UserServer{
+		datastruct.UserServer{
 			IC: "S1111111A", 
 			Email: "admin@admin.com",
 			Firstname: "Firstname",
@@ -29,7 +23,7 @@ func InitializeUsers() {
 			Username: "admin", 
 			Password: bPassword,
 		},
-		User{
+		datastruct.UserServer{
 			IC: "S1111111B", 
 			Email: "user@user.com",
 			Firstname: "Firstname",
@@ -40,7 +34,7 @@ func InitializeUsers() {
 	}
 	
 	// creating a CSV file
-	csvFile, err := os.Create(`security/users.csv`)
+	csvFile, err := os.Create(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +86,7 @@ func WriteCSV(path string, input []string) (error) {
 }
 
 func ReadUserCSV() [][]string {
-	file, err := os.Open(`security/users.csv`)
+	file, err := os.Open(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}
@@ -107,9 +101,9 @@ func ReadUserCSV() [][]string {
 }
 
 
-func GetUserCSV(username string) (User, error) {
+func GetUserCSV(username string) (datastruct.UserServer, error) {
 	// reading a CSV file
-	file, err := os.Open(`security/users.csv`)
+	file, err := os.Open(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +115,7 @@ func GetUserCSV(username string) (User, error) {
 		panic(err)
 	}
 
-	user := User{}
+	user := datastruct.UserServer{}
 
 	for _, item := range record {
 		if (item[4] == username) {

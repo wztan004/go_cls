@@ -41,7 +41,7 @@ func InitializeUsers() {
 	}
 	
 	// creating a CSV file
-	csvFile, err := os.Create(`security/users.csv`)
+	csvFile, err := os.Create(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}
@@ -93,7 +93,7 @@ func WriteCSV(path string, input []string) (error) {
 }
 
 func ReadUserCSV() [][]string {
-	file, err := os.Open(`security/users.csv`)
+	file, err := os.Open(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +110,7 @@ func ReadUserCSV() [][]string {
 
 func GetUserCSV(username string) (User, error) {
 	// reading a CSV file
-	file, err := os.Open(`security/users.csv`)
+	file, err := os.Open(`confidential/users.csv`)
 	if err != nil {
 		panic(err)
 	}

@@ -3,40 +3,39 @@ package route
 import (
 	"fmt"
 	"net/http"
-	ds "assignment4_cp3/datastruct"
+	"assignment4_cp3/datastruct"
 )
 
 // ChangeName allows the user to change names
 func ChangeName(res http.ResponseWriter, req *http.Request) {
 	// Checks if user is logged in and renders data
 	// If not, redirect to home page
-	if !alreadyLoggedIn(req) {
+	b, mUserClient := alreadyLoggedIn(req)
+	if !b {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
 
-	u := getUser(res, req)
 
 	data := struct {
 		Firstname string
 		Lastname  string
 	}{
-		u.First,
-		u.Last,
+		mUserClient.Firstname,
+		mUserClient.Lastname,
 	}
 
-	fmt.Println("Q", u.First, u.Last)
 
 	if req.Method == http.MethodPost {
 		firstname := req.FormValue("firstname")
 		lastname := req.FormValue("lastname")
 
-		mStruct := mapUsers[u.Username]
-		mStruct.First = firstname
-		mStruct.Last = lastname
+		mStruct := mapUsers[mUserClient.Username]
+		mStruct.Firstname = firstname
+		mStruct.Lastname = lastname
 
-		myUser := ds.User{u.Username, u.Password, firstname, lastname}
-		mapUsers[u.Username] = myUser
+		myUser := datastruct.UserClient{mUserClient.Username, mUserClient.Firstname, mUserClient.Lastname}
+		mapUsers[myUser.Username] = myUser
 
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}
@@ -48,13 +47,13 @@ func ChangeName(res http.ResponseWriter, req *http.Request) {
 func Restricted(res http.ResponseWriter, req *http.Request) {
 	// Checks if user is logged in and renders data
 	// If not, redirect to home page
-	if !alreadyLoggedIn(req) {
+	b, mUserClient := alreadyLoggedIn(req)
+	if !b {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-	u := getUser(res, req)
 
-	if u.Username != "admin" {
+	if mUserClient.Username != "admin" {
 		elog.Fatalln("Unauthorized access, closing server")
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
@@ -90,23 +89,21 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 
 // Remove allows the admin to remove a user
 func Remove(res http.ResponseWriter, req *http.Request) {
-	if !alreadyLoggedIn(req) {
+	b, mUserClient := alreadyLoggedIn(req)
+	if !b {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
 
-	u := getUser(res, req)
-	mData.MyUser = u
-
 	if req.Method == http.MethodPost {
 		id := req.FormValue("id")
-		s := []ds.Venue{}
-		for _, num := range mData.VenueNames[u.Username] {
+		s := []datastruct.Venue{}
+		for _, num := range mData.VenueNames[mUserClient.Username] {
 			if num.ID != id {
 				s = append(s, num)
 			}
 		}
-		mData.VenueNames[u.Username] = s
+		mData.VenueNames[mUserClient.Username] = s
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}
 

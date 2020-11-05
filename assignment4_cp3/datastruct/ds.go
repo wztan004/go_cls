@@ -11,15 +11,23 @@ type Venue struct {
 	IsBooked string
 }
 
-type User struct {
+type UserServer struct {
+	IC			string
+	Email		string
+	Firstname	string
+	Lastname	string
+	Username	string
+	Password	string
+}
+
+type UserClient struct {
 	Username string
-	Password []byte
-	First    string
-	Last     string
+	Firstname    string
+	Lastname     string
 }
 
 type Data struct {
-	MyUser     User
+	MyUser     UserClient
 	VenueNames map[string][]Venue
 	VenueUser  []Venue
 	VenueAll   []Venue
