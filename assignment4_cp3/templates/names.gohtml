@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+</head>
+<body>
+    {{template "menu"}}
+    <h2>Your name is currently {{.Firstname}} {{.Lastname}}</h2>
+    <h2>Change your first name, last name</h2>
+    <form method="post">
+        <input type="text" name="firstname" placeholder="First Name"><br>
+        <input type="text" name="lastname" placeholder="Last Name"><br>
+    <input type="submit">
+    </form>
+</body>
+</html>

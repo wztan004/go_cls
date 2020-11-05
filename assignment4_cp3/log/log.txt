@@ -1,0 +1,29 @@
+My app Name 2020/10/30 01:04:03 log.go:40: Starting
+My app Name 2020/10/31 18:10:10 log.go:39: Starting
+My app Name 2020/10/31 18:13:32 log.go:40: Starting
+My app Name 2020/10/31 18:13:32 log.go:41: Starting
+ERROR: 2020/10/31 19:07:18 log.go:33: Something has failed
+WARNING: 2020/10/31 19:27:02 navigate.go:315: login failed
+ERROR: 2020/10/31 19:30:19 navigate.go:237: Unauthorized access, closing server
+WARNING: 2020/11/03 18:19:17 auth.go:216: login failed
+WARNING: 2020/11/03 18:19:55 auth.go:216: login failed
+WARNING: 2020/11/03 18:20:44 auth.go:216: login failed
+WARNING: 2020/11/03 18:21:44 auth.go:216: login failed
+WARNING: 2020/11/03 18:22:33 auth.go:216: login failed
+WARNING: 2020/11/03 18:23:28 auth.go:216: login failed
+WARNING: 2020/11/03 18:24:09 auth.go:216: login failed
+WARNING: 2020/11/03 18:24:41 auth.go:216: login failed
+WARNING: 2020/11/03 18:24:59 auth.go:216: login failed
+WARNING: 2020/11/03 18:26:04 auth.go:216: login failed
+WARNING: 2020/11/03 18:28:59 auth.go:216: login failed
+WARNING: 2020/11/03 18:33:54 auth.go:216: login failed
+WARNING: 2020/11/03 18:58:24 auth.go:216: login failed
+WARNING: 2020/11/03 18:59:00 auth.go:216: login failed
+WARNING: 2020/11/03 18:59:20 auth.go:216: login failed
+WARNING: 2020/11/03 19:00:16 auth.go:216: login failed
+WARNING: 2020/11/03 19:01:24 auth.go:239: login failed using username: admin
+WARNING: 2020/11/03 19:14:59 auth.go:231: login failed using username: afefwa
+WARNING: 2020/11/03 19:15:46 auth.go:230: login failed using username: grgerg
+WARNING: 2020/11/03 19:19:31 auth.go:231: login failed using username: admin
+WARNING: 2020/11/03 19:19:39 auth.go:231: login failed using username: admin
+WARNING: 2020/11/03 19:19:43 auth.go:231: login failed using username: admin
