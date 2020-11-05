@@ -4,6 +4,7 @@ import (
 	"time"
 	"log"
 	"errors"
+	"fmt"
 )
 
 type Node struct {
@@ -50,19 +51,29 @@ func (p *LinkedList) DeleteSession(s string) {
 	}
 }
 
-func Remove(n *Node, s string) {
-	if n == nil {
+
+
+func (p *LinkedList) Remove(s string) {
+	dummy := &Node{Session{"","",time.Now()}, p.Head}
+	d := dummy
+
+	// if matched in first node after dummy, i.e linked list's head 
+	if d.Next.Session.SessionUUID == s {
+		p.Head = d.Next.Next
+		d.Next = d.Next.Next
+		p.Size--
 		return
 	}
-	var p1 Node
-	p1.Next = n
-	p2 := &p1
-	for n != nil {
-		if n.Session.SessionUUID == s {
-			p2.Next, n = n.Next, n.Next
-		} else {
-			p2, n = n, n.Next
-		}
+
+    for d.Next != nil {
+        if d.Next.Session.SessionUUID == s {
+			fmt.Println(d.Next.Session.SessionUUID)
+			fmt.Println(s)
+			d.Next = d.Next.Next
+			p.Size--
+			return
+        }
+        d = d.Next
 	}
 }
 

@@ -42,7 +42,8 @@ func TestLinkedList(t *testing.T) {
 		t.Errorf("Tail: Expecting %v, got %v", e3, r3)
 	}
 
-	ll.DeleteSession("ID1")
+	ll.Remove("ID1")
+
 	e4, r4 := 2, ll.Size
 	if (e4 != r4) {
 		t.Errorf("DeleteSession: Expecting %v, got %v", e4, r4)

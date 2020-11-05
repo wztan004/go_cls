@@ -1,29 +1,37 @@
 package main
 
 import (
-	// "assignment4_cp3/datastruct"
+	"assignment4_cp3/datastruct"
 	// "assignment4_cp3/utils"
 	// "encoding/csv"
 	// "encoding/hex"
 	// "errors"
-	// "fmt"
+	"fmt"
 	
 	// "log"
 	// "net/http"
 	// "os"
-	// "time"
+	"time"
 )
 
-type User struct {
-	IC			string
-	Email		string
-	Firstname	string
-	Lastname	string
-	Username	string
-}
 
 func main() {
-	
+	ll := datastruct.NewLinkedList()
+
+	s := datastruct.Session{"ID1", "node1", time.Now()}
+	ll.EnqueueSession(s)
+
+	s = datastruct.Session{"ID2", "node2", time.Now()}
+	ll.EnqueueSession(s)
+
+	s = datastruct.Session{"ID3", "node3", time.Now()}
+	ll.EnqueueSession(s)
+
+	ll.Remove("ID1")
+
+	s1, _ := ll.GetAllID()
+	fmt.Println(s1)
+
 }
 
 
