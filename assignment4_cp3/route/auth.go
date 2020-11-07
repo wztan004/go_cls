@@ -7,11 +7,10 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"github.com/satori/go.uuid"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 	"errors"
 	
@@ -25,9 +24,16 @@ var mLinkedList datastruct.LinkedList
 var wlog *log.Logger // Be concerned
 var elog *log.Logger // Critical problem
 
+type data struct {
+	MyUser datastruct.UserClient
+	VenueUser []datastruct.Venue
+	VenueUnbooked []datastruct.Venue
+	VenueAll []datastruct.Venue
+}
+
 func init() {
 	utils.InitializeUsers()
-	mData.VenueNames = make(map[string][]datastruct.Venue)
+
 	file, err := os.OpenFile(utils.LOG_FILE, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(err)
@@ -50,69 +56,66 @@ func Index(res http.ResponseWriter, req *http.Request) {
 
 	fmt.Println("Index(): User is logged in")
 
-
-	// Renders the template with user struct
-
-
-	// Get all bookings (duplicated code below, TODO: refactor)
-	keys := make([]string, 0, len(mData.VenueNames))
-	for k := range mData.VenueNames {
-		keys = append(keys, k)
-	}
-	s2 := []datastruct.Venue{}
-	for _, num1 := range keys {
-		for _, num2 := range mData.VenueNames[num1] {
-			s2 = append(s2, num2)
-		}
-	}
-	mData.VenueAll = s2
-
+	var mData data
 	mData.MyUser = mUserClient
 
-	// Get user-specific bookings
-	s1 := []datastruct.Venue{}
-	for _, num := range mData.VenueNames[mUserClient.Username] {
-		s1 = append(s1, num)
+	fileRes1 := utils.ReadFile(`confidential\venues_202009.csv`)
+	fileRes2 := utils.ReadFile(`confidential\venues_202010.csv`)
+
+	venueCSVStruct := func(i []string) datastruct.Venue {
+		var mVenue datastruct.Venue
+		mVenue.Date = i[0]
+		mVenue.Type = i[1]
+		mVenue.Capacity = i[2]
+		mVenue.BookedBy = i[3] 
+		mVenue.Username = i[4] 
+		return mVenue
 	}
-	mData.VenueUser = s1
 
-	if req.Method == http.MethodPost {
-		location := req.FormValue("date")
-		capacity := req.FormValue("capacity")
-
-		id, _ := uuid.NewV4()
-
-		v := datastruct.Venue{id.String(), location, capacity, "true"}
-		s := mData.VenueNames[mUserClient.Username]
-		s = append(s, v)
-		fmt.Println("navigate > Index > mData: ", mData)
-		fmt.Println("navigate > Index > mData.VenueNames: ", mData.VenueNames)
-		fmt.Println("navigate > Index > myUser.Username: ", mUserClient.Username)
-		fmt.Println("navigate > Index > s: ", s)
-
-		mData.VenueNames[mUserClient.Username] = s
-
-		// Get user-specific bookings
-		s1 := []datastruct.Venue{}
-		for _, num := range mData.VenueNames[mUserClient.Username] {
-			s1 = append(s1, num)
-		}
-		mData.VenueUser = s1
-
-		// Get all bookings
-		keys := make([]string, 0, len(mData.VenueNames))
-		for k := range mData.VenueNames {
-			keys = append(keys, k)
-		}
-		s2 := []datastruct.Venue{}
-		for _, num1 := range keys {
-			for _, num2 := range mData.VenueNames[num1] {
-				s2 = append(s2, num2)
+	updateVenueCSV := func(fileResList...[][]string) {
+		for _, j := range fileResList {
+			for _, i := range j {
+				if i[4] == "not booked" {
+					mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
+				} else if i[4] == mUserClient.Username {
+					mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
+				}
+				mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
 			}
 		}
-		mData.VenueAll = s2
+	}
 
-		http.Redirect(res, req, "/", http.StatusSeeOther)
+	updateVenueCSV(fileRes1,fileRes2)
+	
+
+	// fmt.Println("mData1",mData)
+	fmt.Println("mData2",mData.MyUser.Firstname)
+	// fmt.Println("mData3",mData.VenueUser)
+	// fmt.Println("mData4",mData.VenueUnbooked)
+	// fmt.Println("mData5",mData.VenueAll)
+
+	if req.Method == http.MethodPost {
+		date := strings.TrimSpace(req.FormValue("date"))
+		venueType := strings.TrimSpace(req.FormValue("venueType"))
+		capacity := strings.TrimSpace(req.FormValue("capacity"))
+
+		// Goes through each CSV to see if the requested venue is in each CSV
+		// Breaks off the loop once it's found
+		hasBooked := false
+		for _, k := range([]string{
+			`confidential\venues_202009.csv`,
+			`confidential\venues_202010.csv`,
+		}) {
+			hasBooked = bookVenue(k, date, venueType, capacity, mUserClient)
+			if hasBooked == true {
+				break
+			}
+		}
+
+		if hasBooked {
+			http.Redirect(res, req, "/", http.StatusSeeOther)
+		}
+			http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
 		return
 	}
 
@@ -120,86 +123,93 @@ func Index(res http.ResponseWriter, req *http.Request) {
 }
 
 
-// Signup allows users to sign up
+func bookVenue(path string, date string, venueType string, capacity string, mUserClient datastruct.UserClient) bool {
+	// 1. Read each CSV
+	// TODO Variadic
+	res := utils.ReadFile(path)
+
+	// 2. If record matches, update the array
+	var returnRes [][]string
+
+	toReturn := false
+	for _, v := range res {
+		if (date == v[0] && venueType == v[1] && capacity == v[2]) {
+			v[3] = mUserClient.Email
+			v[4] = mUserClient.Username
+			toReturn = true
+			returnRes = append(returnRes, v)
+		} else {
+			returnRes = append(returnRes, v)
+		}
+	}
+
+	// 3. Save the array into the same CSV
+	if toReturn {
+		utils.CreateNewBookingCSV(path, returnRes)
+	}
+
+	// 4. Return function
+	return toReturn
+}
+
+
+
+// Signup allows users to sign up (5Nov20 refactored)
 func Signup(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Signup")
 
-	b, mUserClient := alreadyLoggedIn(req)
+
+	// 1. If logged in, move to Index(). If not logged in, stay.
+	b, _ := alreadyLoggedIn(req)
 	if b == true {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-	var errorString string
-	var mUserServer datastruct.UserServer
 
-	// 1. when you pressed submit
+	// 2. Perform form validation
+	var errorString string
+
 	if req.Method == http.MethodPost {
-		// 2. get values from the fields
 		username := req.FormValue("username")
 		password := req.FormValue("password")
 		firstname := req.FormValue("firstname")
 		lastname := req.FormValue("lastname")
-		icnumber := req.FormValue("icnumber")
+		ic := req.FormValue("icnumber")
 		email := req.FormValue("email")
 
-		// check if username exist/ taken
 		if _, ok := mapUsers[username]; ok {
 			errorString += "Username already taken"
 		}
-		fmt.Println(errorString)
 
-		if res, err := utils.VerifyIC(icnumber); res == false {
+		if res, err := utils.VerifyIC(ic); res == false {
 			errorString += err.Error()
 		}
-		fmt.Println(errorString)
 
 		if res, err := utils.VerifyEmail(email); res == false {
 			errorString += err.Error()
 		}
-		fmt.Println(errorString)
 
 		if res, err := utils.VerifyPassword(password); res == false {
 			errorString += err.Error()
 		}
-		fmt.Println(errorString)
-
-		// create session
-		id, _ := uuid.NewV4()
-		myCookie := &http.Cookie{
-			Name:  "myCookie",
-			Value: id.String(),
-		}
-
-		mUserServer.Username = username
-		mUserServer.Password = string(password)
-		mUserServer.Firstname = firstname
-		mUserServer.Lastname = lastname
-		mUserServer.icnumber = icnumber
-		mUserServer.Username = email
-
-
-		
-		http.SetCookie(res, myCookie)
-		mapSessions[myCookie.Value] = username
-
-		bPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-		if err != nil {
-			http.Error(res, "Internal server error", http.StatusInternalServerError)
-			return
-		}
-		
-		// redirect to main index
 
 		if len(errorString) > 0 {
 			fmt.Println("navigate > Signup > Error signing up")
 			tpl.ExecuteTemplate(res, "signup.gohtml", errorString)
 			return
 		}
+
+		// 3. CSV User: Update
+		bPassword := utils.CreateChecksum(password)
+		utils.WriteCSV(utils.LOG_FILE,[]string{ic,email,firstname,lastname,ic,bPassword})
+
+		startSession(res, req, username)
+
 		fmt.Println("navigate > Signup > No error signing up")
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-	tpl.ExecuteTemplate(res, "signup.gohtml", mUserClient)
+	tpl.ExecuteTemplate(res, "signup.gohtml", nil)
 }
 
 
@@ -212,7 +222,7 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 func Login(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Login()", time.Now())
 
-	b, mUserClient := alreadyLoggedIn(req)
+	b, _ := alreadyLoggedIn(req)
 	if b == true {
 		fmt.Println("Login() 1")
 		http.Redirect(res, req, "/", 302)
@@ -229,21 +239,9 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		ok := authenticateUser1(username, password)
 
 		if ok {
-			mSession := utils.CreateSession(username)
+			startSession(res, req, username)
 
-			// update session linked list
-			mLinkedList.Remove(username)
-			mLinkedList.EnqueueSession(mSession)
-
-			// create cookie
-			cookie := http.Cookie{
-				Name:     "_cookie",
-				Value:    mSession.SessionUUID,
-				HttpOnly: true,
-			}
-
-			http.SetCookie(res, &cookie)
-			fmt.Println("Login() -> Submit -> Set cookie", cookie)
+			fmt.Println("Login() -> Submit -> Set cookie")
 			fmt.Println("Login() -> Submit -> Redirect")
 			http.Redirect(res, req, "/", 302)
 			fmt.Println("End: Login()")
@@ -323,6 +321,7 @@ func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
 		userClient.Username = userServer.Username
 		userClient.Firstname = userServer.Firstname
 		userClient.Lastname = userServer.Lastname
+		userClient.Email = userServer.Email
 
 		return true, userClient
 	}
@@ -340,7 +339,7 @@ func authenticateUser1(username string, password string) bool {
 		fmt.Println("End: authenticateUser1() -> false")
 		return false
 	}
-	bPassword := utils.Encrypt(password)
+	bPassword := utils.CreateChecksum(password)
 	if (string(user.Password) == bPassword) {
 		fmt.Println("End: authenticateUser1() -> true")
 		return true
@@ -350,38 +349,17 @@ func authenticateUser1(username string, password string) bool {
 }
 
 
-// authenticateUser
-func authenticateUser(res http.ResponseWriter, req *http.Request) bool {
-	fmt.Println("Start: authenticateUser()")
-	username := req.FormValue("username")
-	password := req.FormValue("password")
-	user, err := utils.GetUserCSV(username)
-	if err != nil {
-		// user does not exist
-		return false
+func startSession(res http.ResponseWriter, req *http.Request, username string) {
+	mSession := utils.CreateSessionStruct(username)
+	mLinkedList.Remove(username)
+	mLinkedList.EnqueueSession(mSession)
+
+	// Creating session cookie: client side
+	cookie := http.Cookie{
+		Name:     "_cookie",
+		Value:    mSession.SessionUUID,
+		HttpOnly: true,
 	}
 
-	bPassword := utils.Encrypt(password)
-
-	if (string(user.Password) == bPassword) {
-		// create session
-		mSession := utils.CreateSession(user.Username)
-
-		// update session linked list
-		mLinkedList.EnqueueSession(mSession)
-		x, err := mLinkedList.GetAllID()
-		fmt.Println("1", x, err)
-
-		// create cookie
-		cookie := http.Cookie{
-			Name:     "_cookie",
-			Value:    mSession.SessionUUID,
-			HttpOnly: true,
-		}
-		fmt.Println("cookie is set", cookie)
-
-		http.SetCookie(res, &cookie)
-		return true
-	}
-	return false
+	http.SetCookie(res, &cookie)
 }

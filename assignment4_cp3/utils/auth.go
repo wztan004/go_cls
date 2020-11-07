@@ -19,13 +19,15 @@ func CreateUUID() (id string) {
 }
 
 
-func CreateSession(username string) (datastruct.Session) {
+func CreateSessionStruct(username string) (datastruct.Session) {
 	mUUID := CreateUUID()
 	mSession := datastruct.Session{mUUID, username, time.Now()}
 	return mSession
 }
 
-func Encrypt(plain string) (checksum string) {
+
+
+func CreateChecksum(plain string) (checksum string) {
 	b := []byte(plain)
 	h := blake2b.Sum256(b)
 	return fmt.Sprintf("%x", h)

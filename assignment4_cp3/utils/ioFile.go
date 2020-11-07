@@ -12,7 +12,7 @@ import (
 
 
 func InitializeUsers() {
-	bPassword := Encrypt("password")
+	bPassword := CreateChecksum("password")
 
 	allUsers := []datastruct.UserServer{
 		datastruct.UserServer{
@@ -53,6 +53,27 @@ func InitializeUsers() {
 	fmt.Println("users initialized")
 }
 
+
+
+func CreateNewBookingCSV(path string, res [][]string) {
+	csvFile, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	defer csvFile.Close()
+
+	writer := csv.NewWriter(csvFile)
+	for _, user := range res {
+		//20201002,Small room,8,user@user.com,user
+		line := []string{user[0], user[1], user[2], user[3], user[4]}
+		err := writer.Write(line)
+		if err != nil {
+			panic(err)
+		}
+	}
+	writer.Flush()
+}
+
 // WriteCSV returns error if len(input) doesn't match csv columns
 // https://asciinema.org/a/138540
 // https://gobyexample.com/variadic-functions
@@ -85,8 +106,10 @@ func WriteCSV(path string, input []string) (error) {
 	return nil
 }
 
-func ReadUserCSV() [][]string {
-	file, err := os.Open(`confidential/users.csv`)
+
+
+func ReadFile(path string) [][]string {
+	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +122,6 @@ func ReadUserCSV() [][]string {
 	}
 	return record
 }
-
 
 func GetUserCSV(username string) (datastruct.UserServer, error) {
 	// reading a CSV file

@@ -11,7 +11,7 @@ var venues = []ds.Venue{}
 var mData ds.Data
 
 func init() {
-	mData.VenueNames = make(map[string][]ds.Venue)
+
 }
 
 func main() {

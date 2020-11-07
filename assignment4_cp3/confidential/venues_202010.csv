@@ -1,0 +1,11 @@
+20201001,Bar,40,not booked,not booked
+20201001,Bar,71,user@user.com,user
+20201001,Ballroom,70,not booked,not booked
+20201001,Ballroom,86,user@user.com,user
+20201002,Small room,33,not booked,not booked
+20201002,Theater,54,user@user.com,user
+20201002,Theater,40,admin@admin.com,admin
+20201002,Ballroom,70,not booked,not booked
+20201002,Ballroom,4,user@user.com,user
+20201002,Small room,8,admin@admin.com,admin
+20201002,Small room,4,admin@admin.com,admin

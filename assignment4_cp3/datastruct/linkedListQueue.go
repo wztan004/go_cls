@@ -5,6 +5,7 @@ import (
 	"time"
 	"log"
 	"errors"
+
 )
 
 type Node struct {
@@ -16,7 +17,6 @@ type LinkedList struct {
 	Head *Node
 	Tail *Node
 	Size int
-	
 }
 
 //New
@@ -27,7 +27,7 @@ func NewLinkedList() *LinkedList {
 
 // Does not include removing existing session by the user
 func (p *LinkedList) EnqueueSession(s Session) {
-	// In addition, also adds node based on time
+	// includes timestamp of the new node
 	mNode := &Node{s, nil}
 
 	if p.Head == nil {
@@ -130,6 +130,7 @@ func (p *LinkedList) CheckSessionID(id string) (bool, string) {
 	}
 	return false, ""
 }
+
 
 
 func hasSessionTimeout(t time.Time) bool {

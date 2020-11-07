@@ -1,22 +1,30 @@
 <!doctype html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <title>User Detailed Information</title>
+    <meta charset="UTF-8">
+    <title>User Detailed Information</title>
 </head>
 <body>
+{{template "menu"}}
 <h1>Welcome to the admin page</h1>
+
 <h2>Edit Booking</h2>
     <ul>
         <li><a href="/">Add a Booking</a></li>
-        <li><a href="/remove">Remove a Booking</a></li>
+        <li><a href="/remove">Remove any Booking</a></li>
     </ul>
 
-<h2>Delete Sessions/Users (Do not delete admin)</h2>
 <h2>List of usernames (separted by dashes) </h2>
-    {{range .Users}}
+    {{range .UserList}}
+        <li>{{ . }}</li>
+    {{end}}
+
+
+<h2>List of Active Sessions/Users</h2>
+    {{range .SessionList}}
         <li>{{.}}</li>
     {{end}}
+
 
 <h2>Delete user (Do not delete admin)</h2>
     <form method="post">
@@ -25,6 +33,6 @@
 
 <p>
 
-{{template "menu"}}
+
 </body>
 </html>

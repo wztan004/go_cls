@@ -2,43 +2,51 @@ package main
 
 import (
 	"assignment4_cp3/datastruct"
-	// "assignment4_cp3/utils"
+	"assignment4_cp3/utils"
 	// "encoding/csv"
 	// "encoding/hex"
 	// "errors"
 	"fmt"
-	
 	// "log"
 	// "net/http"
 	// "os"
-	"time"
+	// "time"
 )
 
+type data struct {
+	MyUser datastruct.UserClient
+	VenueUser []datastruct.Venue
+	VenueUnbooked []datastruct.Venue
+	VenueAll []datastruct.Venue
+}
 
 func main() {
-	ll := datastruct.NewLinkedList()
+	res := utils.ReadFile(`assignment4_cp3\confidential\venues_202009.csv`)
 
-	s1 := datastruct.Session{"ID1", "node1", time.Now()}
-	ll.EnqueueSession(s1)
-	
-	s2 := datastruct.Session{"ID2", "node2", time.Now()}
-	ll.EnqueueSession(s2)
+	var returnRes [][]string
 
-	s3 := datastruct.Session{"ID3", "node3", time.Now()}
-	ll.EnqueueSession(s3)
+	date := "20200901"
+	venueType := "Bar"
+	capacity := "40"
+	email := "email"
+	username := "username"
 
+	toReturn := false
+	for _, v := range res {
+		if (date == v[0] && venueType == v[1] && capacity == v[2]) {
+			v[3] = email
+			v[4] = username
+			toReturn = true
+			returnRes = append(returnRes, v)
+		} else {
+			returnRes = append(returnRes, v)
+		}
+	}
 
-	ll.Remove("node3")
-
-	s4 := datastruct.Session{"ID4", "node4", time.Now()}
-	ll.EnqueueSession(s4)
-
-	s, _ := ll.GetAllID()
-	fmt.Println("All nodes", s)
-	fmt.Println("size", ll.Size)
-	fmt.Println("head", ll.Head.Session.Username)
-	fmt.Println("tail", ll.Tail.Session.Username)
+	fmt.Println(toReturn)
+	fmt.Println(returnRes)
 }
+
 
 
 // Progress

@@ -5,10 +5,11 @@ import (
 )
 
 type Venue struct {
-	ID       string
 	Date     string
+	Type     string
 	Capacity string
-	IsBooked string
+	BookedBy string
+	Username string
 }
 
 type UserServer struct {
@@ -21,14 +22,14 @@ type UserServer struct {
 }
 
 type UserClient struct {
-	Username string
-	Firstname    string
-	Lastname     string
+	Username	string
+	Firstname	string
+	Lastname	string
+	Email		string
 }
 
 type Data struct {
 	MyUser     UserClient
-	VenueNames map[string][]Venue
 	VenueUser  []Venue
 	VenueAll   []Venue
 }

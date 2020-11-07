@@ -5,19 +5,20 @@
     <title>Remove a Booking</title>
 </head>
 <body>
-    {{$username := .MyUser.Username}}
+    {{$username := .MData.MyUser.Username}}
+    {{template "menu"}}
     
 
-    {{if .VenueNames}}
+    {{if .MData.VenueUser}}
         <h2>Bookings by you, username: {{$username}}</h2>
-        {{range .VenueUser}}
-            <li>Booked {{.Capacity}} on {{.Date}}. Bookng ID is {{.ID}}</li>
+        {{range .MData.VenueUser}}
+            <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
         {{end}}
 
         {{if eq $username "admin"}}
             <h2>All bookings (including you and others). Only admin can see this.</h2>
-            {{range .VenueAll}}
-                <li>Booked {{.Capacity}} on {{.Date}}. Bookng ID is {{.ID}}</li>
+            {{range .MData.VenueAll}}
+                <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
         {{end}}
     {{else}}
@@ -30,6 +31,6 @@
         <input type="text" name="id" placeholder="Enter an ID"><br>
         <input type="submit">
     </form>
-    {{template "menu"}}
+    
 </body>
 </html>
