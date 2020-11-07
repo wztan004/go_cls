@@ -5,14 +5,16 @@ import (
 	"assignment4_cp3/utils"
 	"fmt"
 	"net/http"
+	"log"
+	"strings"
 )
 
 // ChangeName allows the user to change names
 func ChangeName(res http.ResponseWriter, req *http.Request) {
 	// Checks if user is logged in and renders data
 	// If not, redirect to home page
-	b, mUserClient := alreadyLoggedIn(req)
-	if !b {
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	if !isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
@@ -28,13 +30,9 @@ func ChangeName(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		firstname := req.FormValue("firstname")
 		lastname := req.FormValue("lastname")
+		result := utils.ReadFile(`confidential\users.csv`)
 
-		mStruct := mapUsers[mUserClient.Username]
-		mStruct.Firstname = firstname
-		mStruct.Lastname = lastname
-
-		myUser := datastruct.UserClient{mUserClient.Username, mUserClient.Firstname, mUserClient.Lastname, mUserClient.Email}
-		mapUsers[myUser.Username] = myUser
+		EditNames(`confidential\users.csv`, mUserClient.Username, result, firstname, lastname)
 
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}
@@ -42,12 +40,30 @@ func ChangeName(res http.ResponseWriter, req *http.Request) {
 	tpl.ExecuteTemplate(res, "names.gohtml", data)
 }
 
+
+func EditNames(path string, username string, result [][]string, firstname string, lastname string) {
+	var returnRes [][]string
+	
+	for _, v := range result {
+		if (username == v[4]) {
+			v[2] = firstname
+			v[3] = lastname
+			returnRes = append(returnRes, v)
+		} else {
+			returnRes = append(returnRes, v)
+		}
+	}
+
+	utils.CreateNewUserCSV(path, returnRes)
+}
+
+
 // Restricted allows the admin to access privilged pages
 func Restricted(res http.ResponseWriter, req *http.Request) {
 	// Checks if user is logged in and renders data
 	// If not, redirect to home page
-	b, mUserClient := alreadyLoggedIn(req)
-	if !b {
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	if !isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
@@ -143,9 +159,10 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 
 
 func Remove(res http.ResponseWriter, req *http.Request) {
-	b, mUserClient := alreadyLoggedIn(req)
-	if !b {
-		http.Redirect(res, req, "/", http.StatusSeeOther)
+	fmt.Println("Remove()")
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	if !isLoggedIn {
+		toIndexPage(res, req)
 		return
 	}
 
@@ -154,7 +171,6 @@ func Remove(res http.ResponseWriter, req *http.Request) {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-
 
 	var mData data
 	mData.MyUser = mUserClient
@@ -194,11 +210,35 @@ func Remove(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == http.MethodPost {
-		username := req.FormValue("id")
-		mLinkedList.Remove(username)
-		http.Redirect(res, req, "/restricted", http.StatusSeeOther)
+		date := strings.TrimSpace(req.FormValue("date"))
+		venueType := strings.TrimSpace(req.FormValue("venueType"))
+		capacity := strings.TrimSpace(req.FormValue("capacity"))
+
+		// Goes through each CSV to see if the requested venue is in each CSV
+		// Breaks off the loop once it's found
+		for _, k := range([]string{
+			`confidential\venues_202009.csv`,
+			`confidential\venues_202010.csv`,
+		}) {
+			hasBooked, err := EditVenue("remove", k, date, venueType, capacity, mUserClient)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if hasBooked == true {
+				http.Redirect(res, req, "/remove", http.StatusSeeOther)
+				return
+			}
+		}
+
+		http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
 		return
 	}
 
 	tpl.ExecuteTemplate(res, "remove.gohtml", dataToTemplate)
+}
+
+
+func toIndexPage(res http.ResponseWriter, req *http.Request) {
+	http.Redirect(res, req, "/", http.StatusSeeOther)
+	return
 }

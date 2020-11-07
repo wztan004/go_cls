@@ -12,7 +12,7 @@
 
     {{if .MyUser.Firstname}}
         {{if .VenueAll}}
-            <h2>Venues booked {{$username}}</h2>
+            <h2>Venues booked nu {{$username}}</h2>
             {{range .VenueUser}}
                 <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
@@ -24,7 +24,7 @@
                 <input type="text" name="date" placeholder="Date"> e.g. 20201003 <br>
                 <input type="text" name="venueType" placeholder="Venue Type"> e.g. Ballroom <br>
                 <input type="text" name="capacity" placeholder="How many people"> e.g. 33 <br>
-            <input type="submit">
+                <input type="submit">
             </form>
 
             <h2>Available Venues</h2>

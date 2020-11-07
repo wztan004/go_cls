@@ -4,16 +4,15 @@ package route
 import (
 	"assignment4_cp3/datastruct"
 	"assignment4_cp3/utils"
+	"errors"
 	"fmt"
 	"html/template"
-	"net/http"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"time"
-	"errors"
-	
 )
 
 var tpl *template.Template = template.Must(template.ParseGlob("templates/*"))
@@ -25,10 +24,10 @@ var wlog *log.Logger // Be concerned
 var elog *log.Logger // Critical problem
 
 type data struct {
-	MyUser datastruct.UserClient
-	VenueUser []datastruct.Venue
+	MyUser        datastruct.UserClient
+	VenueUser     []datastruct.Venue
 	VenueUnbooked []datastruct.Venue
-	VenueAll []datastruct.Venue
+	VenueAll      []datastruct.Venue
 }
 
 func init() {
@@ -38,7 +37,7 @@ func init() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	
+
 	wlog = log.New(io.MultiWriter(file, os.Stderr), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	elog = log.New(io.MultiWriter(file, os.Stderr), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
@@ -46,8 +45,8 @@ func init() {
 // Index k
 func Index(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Start: Index()")
-	b, mUserClient := alreadyLoggedIn(req)
-	if b == false {
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	if !isLoggedIn {
 		fmt.Println("Index(): User is not logged in")
 		fmt.Println("Index() 1")
 		http.Redirect(res, req, "/login", 302)
@@ -58,6 +57,7 @@ func Index(res http.ResponseWriter, req *http.Request) {
 
 	var mData data
 	mData.MyUser = mUserClient
+	fmt.Println("!", mUserClient)
 
 	fileRes1 := utils.ReadFile(`confidential\venues_202009.csv`)
 	fileRes2 := utils.ReadFile(`confidential\venues_202010.csv`)
@@ -67,12 +67,12 @@ func Index(res http.ResponseWriter, req *http.Request) {
 		mVenue.Date = i[0]
 		mVenue.Type = i[1]
 		mVenue.Capacity = i[2]
-		mVenue.BookedBy = i[3] 
-		mVenue.Username = i[4] 
+		mVenue.BookedBy = i[3]
+		mVenue.Username = i[4]
 		return mVenue
 	}
 
-	updateVenueCSV := func(fileResList...[][]string) {
+	updateVenueCSV := func(fileResList ...[][]string) {
 		for _, j := range fileResList {
 			for _, i := range j {
 				if i[4] == "not booked" {
@@ -85,14 +85,7 @@ func Index(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	updateVenueCSV(fileRes1,fileRes2)
-	
-
-	// fmt.Println("mData1",mData)
-	fmt.Println("mData2",mData.MyUser.Firstname)
-	// fmt.Println("mData3",mData.VenueUser)
-	// fmt.Println("mData4",mData.VenueUnbooked)
-	// fmt.Println("mData5",mData.VenueAll)
+	updateVenueCSV(fileRes1, fileRes2)
 
 	if req.Method == http.MethodPost {
 		date := strings.TrimSpace(req.FormValue("date"))
@@ -101,29 +94,35 @@ func Index(res http.ResponseWriter, req *http.Request) {
 
 		// Goes through each CSV to see if the requested venue is in each CSV
 		// Breaks off the loop once it's found
-		hasBooked := false
-		for _, k := range([]string{
+		for _, k := range []string{
 			`confidential\venues_202009.csv`,
 			`confidential\venues_202010.csv`,
-		}) {
-			hasBooked = bookVenue(k, date, venueType, capacity, mUserClient)
-			if hasBooked == true {
-				break
+		} {
+			hasBooked, err := EditVenue("book", k, date, venueType, capacity, mUserClient)
+			fmt.Println("Index11", hasBooked, err)
+			if err != nil {
+				log.Fatalln(err)
 			}
+			if hasBooked == true {
+				fmt.Println("Index121 breaking out")
+				http.Redirect(res, req, "/", http.StatusSeeOther)
+				return
+			}
+			fmt.Println("this shouldn't appear after 121")
 		}
 
-		if hasBooked {
-			http.Redirect(res, req, "/", http.StatusSeeOther)
-		}
-			http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
+		http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
 		return
 	}
 
 	tpl.ExecuteTemplate(res, "index.gohtml", mData)
 }
 
+func EditVenue(action string, path string, date string, venueType string, capacity string, mUserClient datastruct.UserClient) (bool, error) {
+	if action != "book" && action != "remove" {
+		return false, errors.New("Choose either 'book' or 'remove'")
+	}
 
-func bookVenue(path string, date string, venueType string, capacity string, mUserClient datastruct.UserClient) bool {
 	// 1. Read each CSV
 	// TODO Variadic
 	res := utils.ReadFile(path)
@@ -133,9 +132,15 @@ func bookVenue(path string, date string, venueType string, capacity string, mUse
 
 	toReturn := false
 	for _, v := range res {
-		if (date == v[0] && venueType == v[1] && capacity == v[2]) {
-			v[3] = mUserClient.Email
-			v[4] = mUserClient.Username
+		if date == v[0] && venueType == v[1] && capacity == v[2] {
+			if action == "book" {
+				v[3] = mUserClient.Email
+				v[4] = mUserClient.Username
+			} else if action == "remove" {
+				v[3] = "not booked"
+				v[4] = "not booked"
+			}
+
 			toReturn = true
 			returnRes = append(returnRes, v)
 		} else {
@@ -149,19 +154,16 @@ func bookVenue(path string, date string, venueType string, capacity string, mUse
 	}
 
 	// 4. Return function
-	return toReturn
+	return toReturn, nil
 }
-
-
 
 // Signup allows users to sign up (5Nov20 refactored)
 func Signup(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Signup")
 
-
 	// 1. If logged in, move to Index(). If not logged in, stay.
-	b, _ := alreadyLoggedIn(req)
-	if b == true {
+	isLoggedIn, _ := alreadyLoggedIn(req)
+	if isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
@@ -201,7 +203,7 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 
 		// 3. CSV User: Update
 		bPassword := utils.CreateChecksum(password)
-		utils.WriteCSV(utils.LOG_FILE,[]string{ic,email,firstname,lastname,ic,bPassword})
+		utils.WriteCSV(`confidential\users.csv`, []string{ic, email, firstname, lastname, username, bPassword})
 
 		startSession(res, req, username)
 
@@ -212,18 +214,12 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 	tpl.ExecuteTemplate(res, "signup.gohtml", nil)
 }
 
-
-
-
-
-
-
 // Login : allows log in
 func Login(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Login()", time.Now())
 
-	b, _ := alreadyLoggedIn(req)
-	if b == true {
+	isLoggedIn, _ := alreadyLoggedIn(req)
+	if isLoggedIn {
 		fmt.Println("Login() 1")
 		http.Redirect(res, req, "/", 302)
 		return
@@ -258,8 +254,8 @@ func Login(res http.ResponseWriter, req *http.Request) {
 // Logout : logs the user out of the app
 func Logout(res http.ResponseWriter, req *http.Request) {
 	fmt.Println("Logout()")
-	b, _ := alreadyLoggedIn(req)
-	if b == false {
+	isLoggedIn, _ := alreadyLoggedIn(req)
+	if !isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
@@ -274,8 +270,6 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, "/", http.StatusSeeOther)
 }
 
-
-
 // func getUser(res http.ResponseWriter, req *http.Request) datastruct.User {
 // 	fmt.Println("getUser")
 // 	// get current session cookie
@@ -289,7 +283,7 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 // 		}
 // 		http.SetCookie(res, myCookie)
 // 	}
-	
+
 // 	// if the user exists already, get user
 // 	var myUser datastruct.UserClient
 // 	if username, ok := mapSessions[myCookie.Value]; ok {
@@ -311,6 +305,8 @@ func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
 	}
 
 	res, userstring := mLinkedList.CheckSessionID(myCookie.Value)
+	fmt.Println("!myCookie.Value", myCookie.Value)
+	fmt.Println("!userstring", userstring)
 
 	if res == true {
 		fmt.Println("alreadyLoggedIn(): Logged in")
@@ -322,13 +318,12 @@ func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
 		userClient.Firstname = userServer.Firstname
 		userClient.Lastname = userServer.Lastname
 		userClient.Email = userServer.Email
-
+		fmt.Println("!userClient", userClient)
 		return true, userClient
 	}
 	fmt.Println("alreadyLoggedIn(): Not logged in (session cookie not found)")
 	return false, userClient
 }
-
 
 // authenticateUser1
 func authenticateUser1(username string, password string) bool {
@@ -340,14 +335,13 @@ func authenticateUser1(username string, password string) bool {
 		return false
 	}
 	bPassword := utils.CreateChecksum(password)
-	if (string(user.Password) == bPassword) {
+	if string(user.Password) == bPassword {
 		fmt.Println("End: authenticateUser1() -> true")
 		return true
 	}
 	fmt.Println("End: authenticateUser1() -> false")
 	return false
 }
-
 
 func startSession(res http.ResponseWriter, req *http.Request, username string) {
 	mSession := utils.CreateSessionStruct(username)
