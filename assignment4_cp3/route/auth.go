@@ -5,6 +5,7 @@ import (
 	"assignment4_cp3/datastruct"
 	"assignment4_cp3/utils"
 	"assignment4_cp3/constants"
+	"crypto/subtle"
 	"errors"
 	"fmt"
 	"html/template"
@@ -22,7 +23,8 @@ var mapSessions = map[string]string{}
 var mData datastruct.Data
 var mLinkedList datastruct.LinkedList
 var wlog *log.Logger // Be concerned
-var elog *log.Logger // Critical problem
+var elog *log.Logger // Error problem
+var clog *log.Logger // Critical problem
 
 type data struct {
 	MyUser        datastruct.UserClient
@@ -41,6 +43,7 @@ func init() {
 
 	wlog = log.New(io.MultiWriter(file, os.Stderr), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	elog = log.New(io.MultiWriter(file, os.Stderr), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	clog = log.New(io.MultiWriter(file, os.Stderr), "CRITICAL: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 // Index k
@@ -310,13 +313,20 @@ func authenticateUser1(username string, password string) bool {
 		return false
 	}
 	bPassword := utils.CreateChecksum(password)
-	if string(user.Password) == bPassword {
+
+	x := []byte(user.Password)
+	y := []byte(bPassword)
+	result := subtle.ConstantTimeCompare(x,y)
+
+	if result == 1 {
 		fmt.Println("End: authenticateUser1() -> true")
 		return true
 	}
+	wlog.Println("Log in failed with wrong password. Username:", username)
 	fmt.Println("End: authenticateUser1() -> false")
 	return false
 }
+
 
 func startSession(res http.ResponseWriter, req *http.Request, username string) {
 	mSession := utils.CreateSessionStruct(username)

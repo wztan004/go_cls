@@ -162,7 +162,7 @@ func Remove(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if mUserClient.Username != "admin" {
-		elog.Fatalln("Unauthorized access, closing server")
+		clog.Fatalln("Unauthorized access, closing server")
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
