@@ -2,17 +2,10 @@ package main
 
 import (
 	"assignment4_cp3/route"
+	"assignment4_cp3/constants"
 	"net/http"
-	ds "assignment4_cp3/datastruct"
 	"log"
 )
-
-var venues = []ds.Venue{}
-var mData ds.Data
-
-func init() {
-
-}
 
 func main() {
 	http.HandleFunc("/", route.Index)
@@ -23,7 +16,10 @@ func main() {
 	http.HandleFunc("/logout", route.Logout)
 	http.HandleFunc("/remove", route.Remove)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
-	err := http.ListenAndServeTLS(":5221", "confidential/cert.pem", "confidential/key.pem", nil)
+	
+	err := http.ListenAndServeTLS(constants.SERVER_ADDRESS, 
+		constants.SSH_CERTIFICATE, constants.SSH_KEY, nil)
+
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

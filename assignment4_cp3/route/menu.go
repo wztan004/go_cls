@@ -77,9 +77,7 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 	var mData data
 	mData.MyUser = mUserClient
 
-	fileRes1 := utils.ReadFile(`confidential\venues_202009.csv`)
-	fileRes2 := utils.ReadFile(`confidential\venues_202010.csv`)
-
+	
 	venueCSVStruct := func(i []string) datastruct.Venue {
 		var mVenue datastruct.Venue
 		mVenue.Date = i[0]
@@ -90,20 +88,17 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 		return mVenue
 	}
 
-	updateVenueCSV := func(fileResList ...[][]string) {
-		for _, j := range fileResList {
-			for _, i := range j {
-				if i[4] == "not booked" {
-					mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
-				} else if i[4] == mUserClient.Username {
-					mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-				}
-				mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
+	updateVenueCSV := func() {
+		for _, i := range utils.ReadMultipleFilesConcurrently() {
+			if i[4] == "not booked" {
+				mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
+			} else if i[4] == mUserClient.Username {
+				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
 			}
+			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
 		}
 	}
-
-	updateVenueCSV(fileRes1, fileRes2)
+	updateVenueCSV()
 
 	allUsernames := func() (int, []string) {
 		res := utils.ReadFile(`confidential\users.csv`)
@@ -175,8 +170,7 @@ func Remove(res http.ResponseWriter, req *http.Request) {
 	var mData data
 	mData.MyUser = mUserClient
 
-	fileRes1 := utils.ReadFile(`confidential\venues_202009.csv`)
-	fileRes2 := utils.ReadFile(`confidential\venues_202010.csv`)
+	
 
 	venueCSVStruct := func(i []string) datastruct.Venue {
 		var mVenue datastruct.Venue
@@ -188,20 +182,17 @@ func Remove(res http.ResponseWriter, req *http.Request) {
 		return mVenue
 	}
 
-	updateVenueCSV := func(fileResList ...[][]string) {
-		for _, j := range fileResList {
-			for _, i := range j {
-				if i[4] == "not booked" {
-					mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
-				} else if i[4] == mUserClient.Username {
-					mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-				}
-				mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
+	updateVenueCSV := func() {
+		for _, i := range utils.ReadMultipleFilesConcurrently() {
+			if i[4] == "not booked" {
+				mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
+			} else if i[4] == mUserClient.Username {
+				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
 			}
+			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
 		}
 	}
-
-	updateVenueCSV(fileRes1, fileRes2)
+	updateVenueCSV()
 
 	dataToTemplate := struct {
 		MData       data

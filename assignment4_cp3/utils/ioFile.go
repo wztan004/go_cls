@@ -7,8 +7,9 @@ import (
 	"os"
 	"errors"
 	"assignment4_cp3/datastruct"
+	"assignment4_cp3/constants"
+	"sync"
 )
-
 
 
 func InitializeUsers() {
@@ -34,7 +35,7 @@ func InitializeUsers() {
 	}
 	
 	// creating a CSV file
-	csvFile, err := os.Create(`confidential/users.csv`)
+	csvFile, err := os.Create(constants.USER_FILE)
 	if err != nil {
 		panic(err)
 	}
@@ -141,10 +142,40 @@ func ReadFile(path string) [][]string {
 	}
 	return record
 }
+func ReadFileConcurrently(path string, ch chan <-[][]string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	record, err := reader.ReadAll()
+	if err != nil {
+		panic(err)
+	}
+	ch <- record
+}
+// Note: not generalized to all files
+func ReadMultipleFilesConcurrently() [][]string{
+	var wg sync.WaitGroup
+	wg.Add(2)
+	firstchan := make(chan [][]string)
+	secondchan := make(chan [][]string)
+	go ReadFileConcurrently(constants.LATEST_MONTH_MINUS1_FILE,firstchan, &wg)
+	go ReadFileConcurrently(constants.LATEST_MONTH_FILE,secondchan, &wg)
+	x1 := <- firstchan
+	x2 := <- secondchan
+	wg.Wait()
+	x1 = append(x1, x2...)
+	return x1
+}
+
 
 func GetUserCSV(username string) (datastruct.UserServer, error) {
 	// reading a CSV file
-	file, err := os.Open(`confidential/users.csv`)
+	file, err := os.Open(constants.USER_FILE)
 	if err != nil {
 		panic(err)
 	}

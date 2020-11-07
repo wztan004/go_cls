@@ -5,7 +5,7 @@ import (
 	"time"
 	"log"
 	"errors"
-
+	"assignment4_cp3/constants"
 )
 
 type Node struct {
@@ -134,7 +134,7 @@ func (p *LinkedList) CheckSessionID(id string) (bool, string) {
 
 
 func hasSessionTimeout(t time.Time) bool {
-	thirtyMinutes, err := time.ParseDuration("30m")
+	thirtyMinutes, err := time.ParseDuration(constants.TIMEOUT_DURATION)
 	if err != nil {
 		log.Fatalln("Error converting to Time format")
 	}

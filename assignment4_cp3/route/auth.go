@@ -4,6 +4,7 @@ package route
 import (
 	"assignment4_cp3/datastruct"
 	"assignment4_cp3/utils"
+	"assignment4_cp3/constants"
 	"errors"
 	"fmt"
 	"html/template"
@@ -33,7 +34,7 @@ type data struct {
 func init() {
 	utils.InitializeUsers()
 
-	file, err := os.OpenFile(utils.LOG_FILE, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(constants.LOG_FILE, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -59,9 +60,6 @@ func Index(res http.ResponseWriter, req *http.Request) {
 	mData.MyUser = mUserClient
 	fmt.Println("!", mUserClient)
 
-	fileRes1 := utils.ReadFile(`confidential\venues_202009.csv`)
-	fileRes2 := utils.ReadFile(`confidential\venues_202010.csv`)
-
 	venueCSVStruct := func(i []string) datastruct.Venue {
 		var mVenue datastruct.Venue
 		mVenue.Date = i[0]
@@ -72,20 +70,18 @@ func Index(res http.ResponseWriter, req *http.Request) {
 		return mVenue
 	}
 
-	updateVenueCSV := func(fileResList ...[][]string) {
-		for _, j := range fileResList {
-			for _, i := range j {
-				if i[4] == "not booked" {
-					mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
-				} else if i[4] == mUserClient.Username {
-					mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-				}
-				mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
+	updateVenueCSV := func() {
+		for _, i := range utils.ReadMultipleFilesConcurrently() {
+			if i[4] == "not booked" {
+				mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
+			} else if i[4] == mUserClient.Username {
+				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
 			}
+			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
 		}
 	}
 
-	updateVenueCSV(fileRes1, fileRes2)
+	updateVenueCSV()
 
 	if req.Method == http.MethodPost {
 		date := strings.TrimSpace(req.FormValue("date"))
@@ -270,27 +266,6 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, "/", http.StatusSeeOther)
 }
 
-// func getUser(res http.ResponseWriter, req *http.Request) datastruct.User {
-// 	fmt.Println("getUser")
-// 	// get current session cookie
-// 	myCookie, err := req.Cookie("_cookie")
-// 	if err != nil {
-// 		fmt.Println("getUser, creating cookie...")
-// 		id, _ := uuid.NewV4()
-// 		myCookie = &http.Cookie{
-// 			Name:  "_cookie",
-// 			Value: id.String(),
-// 		}
-// 		http.SetCookie(res, myCookie)
-// 	}
-
-// 	// if the user exists already, get user
-// 	var myUser datastruct.UserClient
-// 	if username, ok := mapSessions[myCookie.Value]; ok {
-// 		myUser = mapUsers[username]
-// 	}
-// 	return myUser
-// }
 
 // alreadyLoggedIn checks if user is part of active user list
 func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {

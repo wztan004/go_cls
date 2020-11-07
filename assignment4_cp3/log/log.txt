@@ -27,3 +27,4 @@ WARNING: 2020/11/03 19:15:46 auth.go:230: login failed using username: grgerg
 WARNING: 2020/11/03 19:19:31 auth.go:231: login failed using username: admin
 WARNING: 2020/11/03 19:19:39 auth.go:231: login failed using username: admin
 WARNING: 2020/11/03 19:19:43 auth.go:231: login failed using username: admin
+ERROR: 2020/11/07 22:06:27 menu.go:72: Unauthorized access, closing server
