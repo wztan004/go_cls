@@ -7,6 +7,10 @@ import (
 	"log"
 )
 
+func init() {
+	initializeUsers()
+}
+
 func main() {
 	http.HandleFunc("/", route.Index)
 	http.HandleFunc("/names", route.ChangeName)

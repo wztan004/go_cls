@@ -2,10 +2,10 @@
 20201001,Bar,71,user@user.com,user
 20201001,Ballroom,70,admin@admin.com,admin
 20201001,Ballroom,86,user@user.com,user
-20201002,Small room,33,unbooked,unbooked
+20201002,Small room,33,unbook,unbook
 20201002,Theater,54,user@user.com,user
-20201002,Theater,40,admin@admin.com,admin
-20201002,Ballroom,70,unbooked,unbooked
+20201002,Theater,40,unbook,unbook
+20201002,Ballroom,70,unbook,unbook
 20201002,Ballroom,4,user@user.com,user
-20201002,Small room,8,unbooked,unbooked
+20201002,Small room,8,unbook,unbook
 20201002,Small room,4,unbook,unbook

@@ -91,6 +91,7 @@ func (p *SessionLinkedList) RemoveSession(username string) {
 }
 
 // GetAllID (two L's one I) returns a list of all current active session IDs.
+// Returns error if there's no active session.
 func (p *SessionLinkedList) GetAllID() ([]string, error) {
 	currentNode := p.Head
 

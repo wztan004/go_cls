@@ -3,21 +3,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func main() {
-	heq("1")
-}
-
-
-func heq(qq string) {
-	if qq == "2" {
-		fmt.Println("a")
-		return
-	}
-	if qq == "1" {
-		fmt.Println("b")
-		return
-	}
-	fmt.Println("c")
+	q := `confidential/venue_202009.csv`
+	fmt.Println(strings.Contains(q, "confidential/venues_"))
 }

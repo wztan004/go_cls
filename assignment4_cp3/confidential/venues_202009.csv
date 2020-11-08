@@ -1,10 +1,10 @@
-20200901,Bar,40,tanwzwz@gmail.com,usernamemee
-20200901,Bar,71,unbooked,unbooked
-20200901,Ballroom,70,unbooked,unbooked
-20200901,Ballroom,86,user@user.com,user
+20200901,Bar,40,admin@admin.com,admin
+20200901,Bar,71,admin@admin.com,admin
+20200901,Ballroom,70,unbook,unbook
+20200901,Ballroom,86,unbook,unbook
 20200902,Small room,33,admin@admin.com,admin
 20200902,Theater,54,user@user.com,user
-20200902,Theater,40,admin@admin.com,admin
+20200902,Theater,40,unbook,unbook
 20200902,Ballroom,70,admin@admin.com,admin
 20200902,Ballroom,4,user@user.com,user
 20200902,Small room,8,admin@admin.com,admin

@@ -28,6 +28,10 @@
 
         <input type="submit">
     </form>
-    {{.}}
+    <p style="color:red;">
+    {{- range $index, $word := .}}
+        {{$word}}<br>
+	{{- end}}
+    </p>
 </body>
 </html>

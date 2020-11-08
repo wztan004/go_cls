@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"errors"
@@ -11,92 +10,10 @@ import (
 	"sync"
 )
 
-
-func InitializeUsers() {
-	bPassword := CreateChecksum("password")
-
-	allUsers := []datastruct.UserServer{
-		datastruct.UserServer{
-			IC: "S1111111A", 
-			Email: "admin@admin.com",
-			Firstname: "Firstname",
-			Lastname: "Lastname",
-			Username: "admin", 
-			Password: bPassword,
-		},
-		datastruct.UserServer{
-			IC: "S1111111B", 
-			Email: "user@user.com",
-			Firstname: "Firstname",
-			Lastname: "Lastname",
-			Username: "user", 
-			Password: bPassword,
-		},
-	}
-	
-	// creating a CSV file
-	csvFile, err := os.Create(constants.UserFile)
-	if err != nil {
-		panic(err)
-	}
-	defer csvFile.Close()
-
-	writer := csv.NewWriter(csvFile)
-	for _, user := range allUsers {
-		line := []string{user.IC, user.Email, user.Firstname, user.Lastname, user.Username, string(user.Password)}
-		err := writer.Write(line)
-		if err != nil {
-			panic(err)
-		}
-	}
-	writer.Flush()
-
-	fmt.Println("users initialized")
-}
-
-
-
-func CreateNewBookingCSV(path string, res [][]string) {
-	csvFile, err := os.Create(path)
-	if err != nil {
-		panic(err)
-	}
-	defer csvFile.Close()
-
-	writer := csv.NewWriter(csvFile)
-	for _, user := range res {
-		line := []string{user[0], user[1], user[2], user[3], user[4]}
-		err := writer.Write(line)
-		if err != nil {
-			panic(err)
-		}
-	}
-	writer.Flush()
-}
-
-func CreateNewUserCSV(path string, res [][]string) {
-	csvFile, err := os.Create(path)
-	if err != nil {
-		panic(err)
-	}
-	defer csvFile.Close()
-
-	writer := csv.NewWriter(csvFile)
-	for _, user := range res {
-		line := []string{user[0], user[1], user[2], user[3], user[4], user[5]}
-		err := writer.Write(line)
-		if err != nil {
-			panic(err)
-		}
-	}
-	writer.Flush()
-}
-
-
-
-// WriteCSV returns error if len(input) doesn't match csv columns
-// https://asciinema.org/a/138540
-// https://gobyexample.com/variadic-functions
+// WriteCSV receives a file path and input and paste the input into the given
+// file path.
+// Returns error if len(input) doesn't match CSV columns.
+// Reference: https://asciinema.org/a/138540
 func WriteCSV(path string, input []string) (error) {
 	file, err := os.OpenFile(path, os.O_APPEND, os.ModeAppend)
 	if err != nil {
@@ -126,8 +43,7 @@ func WriteCSV(path string, input []string) (error) {
 	return nil
 }
 
-
-
+// ReadFile returns the file content.
 func ReadFile(path string) [][]string {
 	file, err := os.Open(path)
 	if err != nil {
@@ -142,7 +58,9 @@ func ReadFile(path string) [][]string {
 	}
 	return record
 }
-func ReadFileConcurrently(path string, ch chan <-[][]string, wg *sync.WaitGroup) {
+
+// readFileConcurrently is a helper function for ReadMultipleFilesConcurrently.
+func readFileConcurrently(path string, ch chan <-[][]string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	file, err := os.Open(path)
 	if err != nil {
@@ -157,14 +75,17 @@ func ReadFileConcurrently(path string, ch chan <-[][]string, wg *sync.WaitGroup)
 	}
 	ch <- record
 }
-// Note: not generalized to all files
+
+// ReadMultipleFilesConcurrently reads the two venue files concurrently.
+// Note that this function is not generalized and only applied to venue
+// files.
 func ReadMultipleFilesConcurrently() [][]string{
 	var wg sync.WaitGroup
 	wg.Add(2)
 	firstchan := make(chan [][]string)
 	secondchan := make(chan [][]string)
-	go ReadFileConcurrently(constants.LatestMthLess1,firstchan, &wg)
-	go ReadFileConcurrently(constants.LatestMth,secondchan, &wg)
+	go readFileConcurrently(constants.LatestMthLess1,firstchan, &wg)
+	go readFileConcurrently(constants.LatestMth,secondchan, &wg)
 	x1 := <- firstchan
 	x2 := <- secondchan
 	wg.Wait()
@@ -172,7 +93,8 @@ func ReadMultipleFilesConcurrently() [][]string{
 	return x1
 }
 
-
+// GetUserCSV returns UserServer of the user. Returns error if the user does
+// not exist.
 func GetUserCSV(username string) (datastruct.UserServer, error) {
 	// reading a CSV file
 	file, err := os.Open(constants.UserFile)
@@ -186,9 +108,7 @@ func GetUserCSV(username string) (datastruct.UserServer, error) {
 	if err != nil {
 		panic(err)
 	}
-
 	user := datastruct.UserServer{}
-
 	for _, item := range record {
 		if (item[4] == username) {
 			user.IC = item[0]
