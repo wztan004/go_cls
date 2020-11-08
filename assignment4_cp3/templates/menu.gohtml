@@ -1,10 +1,12 @@
 {{define "menu"}}
     <h2>Menu</h2>
         <ul>
-            <li><a href="/">Add a Booking</a></li>
-            <li><a href="/remove">Remove a Booking</a></li>
+            <li><a href="/">Book a Venue</a></li>
+            <li><a href="/unbook">Unbook a Venue</a></li>
             <li><a href="/names">Change your name</a></li>
             <li><a href="/logout">Log out</a></li>
+            {{if eq . "admin"}}
             <li><a href="/restricted">Restricted (admin only)</a></li>
+            {{end}}
         </ul>
 {{end}}

@@ -5,8 +5,8 @@
     <title>Welcome</title>
 </head>
 <body>
-    {{template "menu"}}
-    <h2>Your name is currently {{.Firstname}} {{.Lastname}}</h2>
+    {{template "menu" .MData.MyUser.Username}}
+    <h2>Your name is currently {{.MData.MyUser.Firstname}} {{.MData.MyUser.Lastname}}</h2>
     <h2>Change your first name, last name</h2>
     <form method="post">
         <input type="text" name="firstname" placeholder="First Name"><br>

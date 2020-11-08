@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Remove a Booking</title>
+    <title>Unbook a Venue</title>
 </head>
 <body>
     {{$username := .MData.MyUser.Username}}
-    {{template "menu"}}
+    {{template "menu" .MData.MyUser.Username}}
     
-
     {{if .MData.VenueUser}}
+    
         <h2>Bookings by you, username: {{$username}}</h2>
         {{range .MData.VenueUser}}
             <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
@@ -25,7 +25,7 @@
     <h2>You have not made any bookings</h2>
     {{end}}
 
-    <h2>Remove a Booking</h2>
+    <h2>Unbook a Venue</h2>
 
     <form method="post">
         <input type="text" name="date" placeholder="Date"> e.g. 20201003 <br>

@@ -35,7 +35,7 @@ func InitializeUsers() {
 	}
 	
 	// creating a CSV file
-	csvFile, err := os.Create(constants.USER_FILE)
+	csvFile, err := os.Create(constants.UserFile)
 	if err != nil {
 		panic(err)
 	}
@@ -163,8 +163,8 @@ func ReadMultipleFilesConcurrently() [][]string{
 	wg.Add(2)
 	firstchan := make(chan [][]string)
 	secondchan := make(chan [][]string)
-	go ReadFileConcurrently(constants.LATEST_MONTH_MINUS1_FILE,firstchan, &wg)
-	go ReadFileConcurrently(constants.LATEST_MONTH_FILE,secondchan, &wg)
+	go ReadFileConcurrently(constants.LatestMthLess1,firstchan, &wg)
+	go ReadFileConcurrently(constants.LatestMth,secondchan, &wg)
 	x1 := <- firstchan
 	x2 := <- secondchan
 	wg.Wait()
@@ -175,7 +175,7 @@ func ReadMultipleFilesConcurrently() [][]string{
 
 func GetUserCSV(username string) (datastruct.UserServer, error) {
 	// reading a CSV file
-	file, err := os.Open(constants.USER_FILE)
+	file, err := os.Open(constants.UserFile)
 	if err != nil {
 		panic(err)
 	}
@@ -202,3 +202,4 @@ func GetUserCSV(username string) (datastruct.UserServer, error) {
 	}
 	return user, errors.New("Cannot find user")
 }
+

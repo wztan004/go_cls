@@ -6,13 +6,13 @@
 </head>
 <body>
     {{$username := .MyUser.Username}}
-    {{template "menu"}}
+    {{template "menu" .MyUser.Username}}
 
     <h2>Welcome, {{.MyUser.Firstname}} {{.MyUser.Lastname}}</h2>
 
     {{if .MyUser.Firstname}}
         {{if .VenueAll}}
-            <h2>Venues booked nu {{$username}}</h2>
+            <h2>Venues booked by {{$username}}</h2>
             {{range .VenueUser}}
                 <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
@@ -28,7 +28,7 @@
             </form>
 
             <h2>Available Venues</h2>
-            {{range .VenueUnbooked}}
+            {{range .VenueUnbook}}
                 <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
         {{else}}

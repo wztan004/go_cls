@@ -8,26 +8,30 @@ import (
 	"assignment4_cp3/constants"
 )
 
-type Node struct {
-	Session Session
-	Next *Node
-}
-
-type LinkedList struct {
+// A SessionLinkedList is a linked list of user sessions, ordered by last
+// logged in time, with the most recent session being at the Tail.
+type SessionLinkedList struct {
 	Head *Node
 	Tail *Node
 	Size int
 }
 
-//New
-func NewLinkedList() *LinkedList {
-    return &LinkedList{nil,nil,0}
+// A Node is used to describe a user's session details with a pointer to the 
+// next user. The next user will always be someone who visited the website
+// more recently. 
+type Node struct {
+	Session Session
+	Next *Node
 }
 
+// NewSessionLinkedList returns an empty linked list for session management.
+func NewSessionLinkedList() *SessionLinkedList {
+    return &SessionLinkedList{nil,nil,0}
+}
 
-// Does not include removing existing session by the user
-func (p *LinkedList) EnqueueSession(s Session) {
-	// includes timestamp of the new node
+// EnqueueSession adds the user's latest session info to the linked list, but
+// does not remove the previous session. Usually used with RemoveSession.
+func (p *SessionLinkedList) EnqueueSession(s Session) {
 	mNode := &Node{s, nil}
 
 	if p.Head == nil {
@@ -41,28 +45,20 @@ func (p *LinkedList) EnqueueSession(s Session) {
 	p.Size++
 }
 
-func (p *LinkedList) DeleteSession(s string) {
-	currentNode := p.Head
-	for currentNode.Next != nil {
-        if currentNode.Next.Session.SessionUUID == s {
-			currentNode.Next = currentNode.Next.Next
-			p.Size--
-        }
-        currentNode = currentNode.Next
-	}
-}
-
-
-
-func (p *LinkedList) Remove(username string) {
+// RemoveSession removes the user's session info from the linked list, usually
+// used with EnqueueSession.
+func (p *SessionLinkedList) RemoveSession(username string) {
 	if p.Head == nil {
+		fmt.Println("!3")
 		return
 	}
 
 	if p.Size == 1 {
-		p.Head = nil
-		p.Tail = nil
-		p.Size--
+		if p.Head.Session.Username == username {
+			p.Head = nil
+			p.Tail = nil
+			p.Size--
+		}
 		return
 	}
 
@@ -74,6 +70,7 @@ func (p *LinkedList) Remove(username string) {
 		p.Head = d.Next.Next
 		d.Next = d.Next.Next
 		p.Size--
+		fmt.Println("!1")
 		return
 	}
 
@@ -85,6 +82,7 @@ func (p *LinkedList) Remove(username string) {
 			d.Next = d.Next.Next
 			p.Size--
 			fmt.Println(d.Session.Username)
+			fmt.Println("!2")
 			return
 		}
         d = d.Next
@@ -92,8 +90,8 @@ func (p *LinkedList) Remove(username string) {
 	
 }
 
-
-func (p *LinkedList) GetAllID() ([]string, error) {
+// GetAllID (two L's one I) returns a list of all current active session IDs.
+func (p *SessionLinkedList) GetAllID() ([]string, error) {
 	currentNode := p.Head
 
 	if currentNode == nil {
@@ -110,8 +108,8 @@ func (p *LinkedList) GetAllID() ([]string, error) {
 	return output, nil
 }
 
-// CheckSessionID checks if user's session ID is already active in the linked list
-func (p *LinkedList) CheckSessionID(id string) (bool, string) {
+// CheckSessionID checks if the user's session ID is present in the linked list.
+func (p *SessionLinkedList) CheckSessionID(id string) (bool, string) {
 	currentNode := p.Head
 
 	if currentNode == nil {
@@ -131,10 +129,10 @@ func (p *LinkedList) CheckSessionID(id string) (bool, string) {
 	return false, ""
 }
 
-
-
+// hasSessionTimeout returns true if session Node has exceeded the timeout
+// limit.
 func hasSessionTimeout(t time.Time) bool {
-	thirtyMinutes, err := time.ParseDuration(constants.TIMEOUT_DURATION)
+	thirtyMinutes, err := time.ParseDuration(constants.Timeout)
 	if err != nil {
 		log.Fatalln("Error converting to Time format")
 	}

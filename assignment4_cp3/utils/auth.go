@@ -1,3 +1,7 @@
+// Package utils offers shared functions that could be used across multiple
+// packages. 
+
+
 package utils
 
 import (

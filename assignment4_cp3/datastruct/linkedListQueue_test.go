@@ -6,9 +6,9 @@ import (
 	
 )
 
-// Tests for Session{}, NewLinkedList(), EnqueueSession(), CheckSessionID()
-func TestLinkedList_1(t *testing.T) {
-	ll := NewLinkedList()
+// Tests for Session{}, NewSessionLinkedList(), EnqueueSession(), CheckSessionID()
+func TestSessionLinkedList_1(t *testing.T) {
+	ll := NewSessionLinkedList()
 
 	s := Session{"ID1", "node1", time.Now()}
 	ll.EnqueueSession(s)
@@ -20,10 +20,10 @@ func TestLinkedList_1(t *testing.T) {
 	}
 }
 
-// Tests for Session.Head, Session.Tail, GetAllID(), Remove()
-func TestLinkedList_2(t *testing.T) {
+// Tests for Session.Head, Session.Tail, GetAllID(), RemoveSession()
+func TestSessionLinkedList_2(t *testing.T) {
 	// Start: Boilerplate
-	ll := NewLinkedList()
+	ll := NewSessionLinkedList()
 	s1 := Session{"ID1", "node1", time.Now()}
 	ll.EnqueueSession(s1)
 	s2 := Session{"ID2", "node2", time.Now()}
@@ -42,15 +42,14 @@ func TestLinkedList_2(t *testing.T) {
 		t.Errorf("Len(GetAllID) == ll.Size: Expecting %v, got %v", e1, r1)
 	}
 
-
-	ll.Remove("node1")
+	ll.RemoveSession("node1")
 
 	e2, r2 := "node2", ll.Head.Session.Username
 	if (e2 != r2) {
 		t.Errorf("Head: Expecting %v, got %v", e2, r2)
 	}
 
-	ll.Remove("node3")
+	ll.RemoveSession("node3")
 
 	e3, r3 := "node2", ll.Tail.Session.Username
 	if (e3 != r3) {
@@ -59,6 +58,6 @@ func TestLinkedList_2(t *testing.T) {
 
 	e4, r4 := 1, ll.Size
 	if (e4 != r4) {
-		t.Errorf("Remove: Expecting %v, got %v", e4, r4)
+		t.Errorf("RemoveSession: Expecting %v, got %v", e4, r4)
 	}
 }

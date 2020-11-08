@@ -1,4 +1,5 @@
-// Package route the app to navigate around
+// Package route includes routing details, including authentication and key
+// options (e.g. book venues) within the web app.
 package route
 
 import (
@@ -7,61 +8,45 @@ import (
 	"assignment4_cp3/constants"
 	"crypto/subtle"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 var tpl *template.Template = template.Must(template.ParseGlob("templates/*"))
 var mapUsers = map[string]datastruct.UserClient{}
-var mapSessions = map[string]string{}
-var mData datastruct.Data
-var mLinkedList datastruct.LinkedList
+var mLinkedList datastruct.SessionLinkedList
 var wlog *log.Logger // Be concerned
 var elog *log.Logger // Error problem
 var clog *log.Logger // Critical problem
 
-type data struct {
-	MyUser        datastruct.UserClient
-	VenueUser     []datastruct.Venue
-	VenueUnbooked []datastruct.Venue
-	VenueAll      []datastruct.Venue
-}
-
-func init() {
+// init (initializes) "admin" and "user" accounts, and logging objects.
+func init() { 
 	utils.InitializeUsers()
 
-	file, err := os.OpenFile(constants.LOG_FILE, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(constants.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalln(err)
 	}
-
 	wlog = log.New(io.MultiWriter(file, os.Stderr), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	elog = log.New(io.MultiWriter(file, os.Stderr), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	clog = log.New(io.MultiWriter(file, os.Stderr), "CRITICAL: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-// Index k
+// Index is the home page. If the user is logged in, it will show the user's
+// current booked venues and main actions to take in the system.
 func Index(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Start: Index()")
 	isLoggedIn, mUserClient := alreadyLoggedIn(req)
 	if !isLoggedIn {
-		fmt.Println("Index(): User is not logged in")
-		fmt.Println("Index() 1")
 		http.Redirect(res, req, "/login", 302)
 		return
 	}
 
-	fmt.Println("Index(): User is logged in")
-
-	var mData data
+	var mData datastruct.VenueAvailability
 	mData.MyUser = mUserClient
-	fmt.Println("!", mUserClient)
 
 	venueCSVStruct := func(i []string) datastruct.Venue {
 		var mVenue datastruct.Venue
@@ -73,17 +58,17 @@ func Index(res http.ResponseWriter, req *http.Request) {
 		return mVenue
 	}
 
+	// Reads multiple CSV venue files and update mData struct 
 	updateVenueCSV := func() {
 		for _, i := range utils.ReadMultipleFilesConcurrently() {
-			if i[4] == "not booked" {
-				mData.VenueUnbooked = append(mData.VenueUnbooked, venueCSVStruct(i))
+			if i[4] == "unbook" {
+				mData.VenueUnbook = append(mData.VenueUnbook, venueCSVStruct(i))
 			} else if i[4] == mUserClient.Username {
 				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
 			}
 			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
 		}
 	}
-
 	updateVenueCSV()
 
 	if req.Method == http.MethodPost {
@@ -92,38 +77,43 @@ func Index(res http.ResponseWriter, req *http.Request) {
 		capacity := strings.TrimSpace(req.FormValue("capacity"))
 
 		// Goes through each CSV to see if the requested venue is in each CSV
-		// Breaks off the loop once it's found
+		// Once found, update the venue info and break off the loop.
 		for _, k := range []string{
 			`confidential\venues_202009.csv`,
 			`confidential\venues_202010.csv`,
 		} {
 			hasBooked, err := EditVenue("book", k, date, venueType, capacity, mUserClient)
-			fmt.Println("Index11", hasBooked, err)
 			if err != nil {
 				log.Fatalln(err)
 			}
 			if hasBooked == true {
-				fmt.Println("Index121 breaking out")
 				http.Redirect(res, req, "/", http.StatusSeeOther)
 				return
 			}
-			fmt.Println("this shouldn't appear after 121")
 		}
-
 		http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
 		return
 	}
-
 	tpl.ExecuteTemplate(res, "index.gohtml", mData)
 }
 
+// EditVenue allows the user to either add or unbook a venue. Adding a venue can
+// only be applied to unbooked venues, removing a venue can only be applied to
+// booked venues. It edits the last two fields of the CSV file: email and
+// username. Adding a venue would set the two fields to user-specific info,
+// while removing a venue would set them to "unbook".
+//
+// Action should be either "book" or "unbook".
+// Path is the relative path to the CSV venue file.
+// Date follows the format of "YYYYMMDD".
+// Capacity is an integer but formatted in string.
+// mUserClient is the user's info.
 func EditVenue(action string, path string, date string, venueType string, capacity string, mUserClient datastruct.UserClient) (bool, error) {
-	if action != "book" && action != "remove" {
-		return false, errors.New("Choose either 'book' or 'remove'")
+	if action != "book" && action != "unbook" {
+		return false, errors.New("Choose either 'book' or 'unbook'")
 	}
 
-	// 1. Read each CSV
-	// TODO Variadic
+	// 1. Read a CSV file
 	res := utils.ReadFile(path)
 
 	// 2. If record matches, update the array
@@ -135,11 +125,10 @@ func EditVenue(action string, path string, date string, venueType string, capaci
 			if action == "book" {
 				v[3] = mUserClient.Email
 				v[4] = mUserClient.Username
-			} else if action == "remove" {
-				v[3] = "not booked"
-				v[4] = "not booked"
+			} else if action == "unbook" {
+				v[3] = "unbook"
+				v[4] = "unbook"
 			}
-
 			toReturn = true
 			returnRes = append(returnRes, v)
 		} else {
@@ -156,20 +145,18 @@ func EditVenue(action string, path string, date string, venueType string, capaci
 	return toReturn, nil
 }
 
-// Signup allows users to sign up (5Nov20 refactored)
+// Signup starts account registration, validates their fields, saves the
+// profile and then redirect to the home page.
 func Signup(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Signup")
-
-	// 1. If logged in, move to Index(). If not logged in, stay.
+	// 1. If logged in, redirect to Index().
 	isLoggedIn, _ := alreadyLoggedIn(req)
 	if isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
 
-	// 2. Perform form validation
+	// 2. Perform form validation with regular expressions.
 	var errorString string
-
 	if req.Method == http.MethodPost {
 		username := req.FormValue("username")
 		password := req.FormValue("password")
@@ -177,25 +164,19 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 		lastname := req.FormValue("lastname")
 		ic := req.FormValue("icnumber")
 		email := req.FormValue("email")
-
-		if _, ok := mapUsers[username]; ok {
-			errorString += "Username already taken"
+		if _, err := utils.GetUserCSV(username); err == nil {
+			errorString += "Username is already taken!"
 		}
-
 		if res, err := utils.VerifyIC(ic); res == false {
 			errorString += err.Error()
 		}
-
 		if res, err := utils.VerifyEmail(email); res == false {
 			errorString += err.Error()
 		}
-
 		if res, err := utils.VerifyPassword(password); res == false {
 			errorString += err.Error()
 		}
-
 		if len(errorString) > 0 {
-			fmt.Println("navigate > Signup > Error signing up")
 			tpl.ExecuteTemplate(res, "signup.gohtml", errorString)
 			return
 		}
@@ -203,62 +184,45 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 		// 3. CSV User: Update
 		bPassword := utils.CreateChecksum(password)
 		utils.WriteCSV(`confidential\users.csv`, []string{ic, email, firstname, lastname, username, bPassword})
-
 		startSession(res, req, username)
-
-		fmt.Println("navigate > Signup > No error signing up")
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
 	tpl.ExecuteTemplate(res, "signup.gohtml", nil)
 }
 
-// Login : allows log in
+// Login allows user to authenticate. If successful, start a session and
+// redirect to home page.
 func Login(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Login()", time.Now())
-
 	isLoggedIn, _ := alreadyLoggedIn(req)
 	if isLoggedIn {
-		fmt.Println("Login() 1")
 		http.Redirect(res, req, "/", 302)
 		return
 	}
-
-	fmt.Println("Login() 2")
-
-	// process form submission
 	if req.Method == http.MethodPost {
-		fmt.Println("Login() -> Submit")
 		username := req.FormValue("username")
 		password := req.FormValue("password")
-		ok := authenticateUser1(username, password)
-
+		ok := authenticateUser(username, password)
 		if ok {
 			startSession(res, req, username)
-
-			fmt.Println("Login() -> Submit -> Set cookie")
-			fmt.Println("Login() -> Submit -> Redirect")
 			http.Redirect(res, req, "/", 302)
-			fmt.Println("End: Login()")
 			return
 		}
-		fmt.Println("Login() -> Failed submission -> Redirect")
 		http.Redirect(res, req, "/login", 302)
-		fmt.Println("End: Login()")
 		return
 	}
 	tpl.ExecuteTemplate(res, "login.gohtml", nil)
 }
 
-// Logout : logs the user out of the app
+// Logout removes the session in the server and expires the client cookie.
 func Logout(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Logout()")
-	isLoggedIn, _ := alreadyLoggedIn(req)
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
 	if !isLoggedIn {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
-	// TODO delete the session
+
+	mLinkedList.RemoveSession(mUserClient.Username)
 
 	myCookie := &http.Cookie{
 		Name:   "_cookie",
@@ -270,24 +234,18 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 }
 
 
-// alreadyLoggedIn checks if user is part of active user list
+// alreadyLoggedIn checks if user is part of active session list and returns
+// the client's profile.
 func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
-	fmt.Println("Start: alreadyLoggedIn()", time.Now())
-
 	var userClient datastruct.UserClient
 	myCookie, err := req.Cookie("_cookie")
 	if err != nil {
-		fmt.Println("alreadyLoggedIn(): Not logged in (client cookie not found)")
-		fmt.Println("End: alreadyLoggedIn()")
 		return false, userClient
 	}
 
 	res, userstring := mLinkedList.CheckSessionID(myCookie.Value)
-	fmt.Println("!myCookie.Value", myCookie.Value)
-	fmt.Println("!userstring", userstring)
 
 	if res == true {
-		fmt.Println("alreadyLoggedIn(): Logged in")
 		userServer, err := utils.GetUserCSV(userstring)
 		if err != nil {
 			errors.New("Unable to get user")
@@ -296,20 +254,15 @@ func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
 		userClient.Firstname = userServer.Firstname
 		userClient.Lastname = userServer.Lastname
 		userClient.Email = userServer.Email
-		fmt.Println("!userClient", userClient)
 		return true, userClient
 	}
-	fmt.Println("alreadyLoggedIn(): Not logged in (session cookie not found)")
 	return false, userClient
 }
 
-// authenticateUser1
-func authenticateUser1(username string, password string) bool {
-	fmt.Println("Start: authenticateUser1()")
+// authenticateUser checks if the username and password is correct.
+func authenticateUser(username string, password string) bool {
 	user, err := utils.GetUserCSV(username)
 	if err != nil {
-		// user does not exist
-		fmt.Println("End: authenticateUser1() -> false")
 		return false
 	}
 	bPassword := utils.CreateChecksum(password)
@@ -319,21 +272,20 @@ func authenticateUser1(username string, password string) bool {
 	result := subtle.ConstantTimeCompare(x,y)
 
 	if result == 1 {
-		fmt.Println("End: authenticateUser1() -> true")
 		return true
 	}
+	// This log should not shown to the user.
 	wlog.Println("Log in failed with wrong password. Username:", username)
-	fmt.Println("End: authenticateUser1() -> false")
 	return false
 }
 
-
+// startSession updates the user session in the server and sets client cookie
 func startSession(res http.ResponseWriter, req *http.Request, username string) {
 	mSession := utils.CreateSessionStruct(username)
-	mLinkedList.Remove(username)
+	mLinkedList.RemoveSession(username)
 	mLinkedList.EnqueueSession(mSession)
 
-	// Creating session cookie: client side
+	// Create session cookie: client side
 	cookie := http.Cookie{
 		Name:     "_cookie",
 		Value:    mSession.SessionUUID,
