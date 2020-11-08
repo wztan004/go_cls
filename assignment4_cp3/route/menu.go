@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+
 // ChangeName renders the HTML page that allows changing first name and last
 // name.
 func ChangeName(res http.ResponseWriter, req *http.Request) {
@@ -67,28 +68,8 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 
 	var mData datastruct.VenueAvailability
 	mData.MyUser = mUserClient
-	
-	venueCSVStruct := func(i []string) datastruct.Venue {
-		var mVenue datastruct.Venue
-		mVenue.Date = i[0]
-		mVenue.Type = i[1]
-		mVenue.Capacity = i[2]
-		mVenue.BookedBy = i[3]
-		mVenue.Username = i[4]
-		return mVenue
-	}
 
-	updateVenueCSV := func() {
-		for _, i := range utils.ReadMultipleFilesConcurrently() {
-			if i[4] == "unbook" {
-				mData.VenueUnbook = append(mData.VenueUnbook, venueCSVStruct(i))
-			} else if i[4] == mUserClient.Username {
-				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-			}
-			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
-		}
-	}
-	updateVenueCSV()
+	updateTemplateData(&mData, &mUserClient)
 
 	allUsernames := func() (int, []string) {
 		res := utils.ReadFile(constants.UserFile)
@@ -108,28 +89,86 @@ func Restricted(res http.ResponseWriter, req *http.Request) {
 		wlog.Println(err)
 	}
 
+	var errMsg string
 	dataToTemplate := struct {
 		MData       datastruct.VenueAvailability
 		UserList    []string
 		UserNum     int
 		SessionList []string
+		ErrMsg		string
 	}{
 		mData,
 		userList,
 		userNum,
 		sessionList,
+		errMsg,
 	}
 
 	if req.Method == http.MethodPost {
 		username := req.FormValue("userid")
 		mLinkedList.RemoveSession(username)
-		http.Redirect(res, req, "/restricted", http.StatusSeeOther)
-		
+		_, err := utils.GetUserCSV(username)
+		if err != nil {
+			dataToTemplate.ErrMsg = "User does not exist!" //TODO current implementation does not search for sessions
+			tpl.ExecuteTemplate(res, "restricted.gohtml", dataToTemplate)
+			return
+		}
+		tpl.ExecuteTemplate(res, "restricted.gohtml", dataToTemplate)
 		return
 	}
 
 	tpl.ExecuteTemplate(res, "restricted.gohtml", dataToTemplate)
 }
+
+// BookVenue show the user's current booked venues and main actions to take 
+// in the system.
+func BookVenue(res http.ResponseWriter, req *http.Request) {
+	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	if !isLoggedIn {
+		http.Redirect(res, req, "/login", 302)
+		return
+	}
+	var mData datastruct.VenueAvailability
+	var errMsg string
+	dataToTemplate := struct {
+		MData       datastruct.VenueAvailability
+		ErrMsg		string
+	}{
+		mData,
+		errMsg,
+	}
+	mData.MyUser = mUserClient
+
+	updateTemplateData(&mData, &mUserClient)
+	dataToTemplate.MData = mData
+
+	if req.Method == http.MethodPost {
+		date := strings.TrimSpace(req.FormValue("date"))
+		venueType := strings.TrimSpace(req.FormValue("venueType"))
+		capacity := strings.TrimSpace(req.FormValue("capacity"))
+
+		// Goes through each CSV to see if the requested venue is in each CSV
+		// Once found, update the venue info and break off the loop.
+		for _, k := range []string{
+			constants.LatestMthLess1,
+			constants.LatestMth,
+		} {
+			hasBooked, err := EditVenue("book", k, date, venueType, capacity, mUserClient)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if hasBooked == true {
+				toIndexPage(res,req)
+				return
+			}
+		}
+		dataToTemplate.ErrMsg = "Check your entry again. You can only enter available venues"
+		tpl.ExecuteTemplate(res, "book.gohtml", dataToTemplate)
+		return
+	}
+	tpl.ExecuteTemplate(res, "book.gohtml", dataToTemplate)
+}
+
 
 // UnbookVenue renders a HTML page that allows the a user to unbook own
 // bookings.
@@ -141,31 +180,15 @@ func UnbookVenue(res http.ResponseWriter, req *http.Request) {
 	}
 	var mData datastruct.VenueAvailability
 	mData.MyUser = mUserClient
-	venueCSVStruct := func(i []string) datastruct.Venue {
-		var mVenue datastruct.Venue
-		mVenue.Date = i[0]
-		mVenue.Type = i[1]
-		mVenue.Capacity = i[2]
-		mVenue.BookedBy = i[3]
-		mVenue.Username = i[4]
-		return mVenue
-	}
-	updateVenueCSV := func() {
-		for _, i := range utils.ReadMultipleFilesConcurrently() {
-			if i[4] == "unbook" {
-				mData.VenueUnbook = append(mData.VenueUnbook, venueCSVStruct(i))
-			} else if i[4] == mUserClient.Username {
-				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-			}
-			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
-		}
-	}
-	updateVenueCSV()
+	updateTemplateData(&mData, &mUserClient)
 
+	var errMsg string
 	dataToTemplate := struct {
 		MData       datastruct.VenueAvailability
+		ErrMsg		string
 	}{
 		mData,
+		errMsg,
 	}
 	if req.Method == http.MethodPost {
 		date := strings.TrimSpace(req.FormValue("date"))
@@ -186,7 +209,8 @@ func UnbookVenue(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		http.Error(res, "Check your input again. You can only enter booked venues", http.StatusForbidden)
+		dataToTemplate.ErrMsg = "Check your input again. You can only enter booked venues"
+		tpl.ExecuteTemplate(res, "unbook.gohtml", dataToTemplate)
 		return
 	}
 

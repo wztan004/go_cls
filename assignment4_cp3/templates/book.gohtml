@@ -5,15 +5,15 @@
     <title>Welcome</title>
 </head>
 <body>
-    {{$username := .MyUser.Username}}
-    {{template "menu" .MyUser.Username}}
+    {{$username := .MData.MyUser.Username}}
+    {{template "menu" .MData.MyUser.Username}}
 
-    <h2>Welcome, {{.MyUser.Firstname}} {{.MyUser.Lastname}}</h2>
+    <h2>Welcome, {{.MData.MyUser.Firstname}} {{.MData.MyUser.Lastname}}</h2>
 
-    {{if .MyUser.Firstname}}
-        {{if .VenueAll}}
+    {{if .MData.MyUser.Firstname}}
+        {{if .MData.VenueAll}}
             <h2>Venues booked by {{$username}}</h2>
-            {{range .VenueUser}}
+            {{range .MData.VenueUser}}
                 <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
 
@@ -26,11 +26,16 @@
                 <input type="text" name="capacity" placeholder="How many people"> e.g. 33 <br>
                 <input type="submit">
             </form>
+            
+            <p style="color:red;">
+                {{.ErrMsg}}
+            </p>
 
             <h2>Available Venues</h2>
-            {{range .VenueUnbook}}
+            {{range .MData.VenueUnbook}}
                 <li>Booked {{ .Type }} on {{.Date}} for {{.Capacity}} people. 
             {{end}}
+            
         {{else}}
             <h2>You have not made any bookings</h2>
         {{end}}

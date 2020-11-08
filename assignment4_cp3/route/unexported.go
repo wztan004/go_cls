@@ -16,6 +16,28 @@ import (
 	"time"
 )
 
+
+// authenticateUser returns true if the username and password is correct.
+func authenticateUser(username string, password string) bool {
+	user, err := utils.GetUserCSV(username)
+	if err != nil {
+		return false
+	}
+	bPassword := utils.CreateChecksum(password)
+
+	x := []byte(user.Password)
+	y := []byte(bPassword)
+	result := subtle.ConstantTimeCompare(x,y)
+
+	if result == 1 {
+		return true
+	}
+	// This log should not shown to the user.
+	wlog.Println("Log in failed with wrong password. Username:", username)
+	return false
+}
+
+// createNewUserCSV creates a new CSV that stores user data, given a 2D array.
 func createNewUserCSV(path string, res [][]string) {
 	csvFile, err := os.Create(path)
 	if err != nil {
@@ -34,11 +56,13 @@ func createNewUserCSV(path string, res [][]string) {
 	writer.Flush()
 }
 
+
+
+// toIndexPage returns to the Index page
 func toIndexPage(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, "/", http.StatusSeeOther)
 	return
 }
-
 
 // alreadyLoggedIn checks if user is part of active session list and returns
 // the client's profile.
@@ -65,25 +89,7 @@ func alreadyLoggedIn(req *http.Request) (bool, datastruct.UserClient) {
 	return false, userClient
 }
 
-// authenticateUser returns true if the username and password is correct.
-func authenticateUser(username string, password string) bool {
-	user, err := utils.GetUserCSV(username)
-	if err != nil {
-		return false
-	}
-	bPassword := utils.CreateChecksum(password)
 
-	x := []byte(user.Password)
-	y := []byte(bPassword)
-	result := subtle.ConstantTimeCompare(x,y)
-
-	if result == 1 {
-		return true
-	}
-	// This log should not shown to the user.
-	wlog.Println("Log in failed with wrong password. Username:", username)
-	return false
-}
 
 // startSession updates the user session in the server and sets client cookie
 func startSession(res http.ResponseWriter, req *http.Request, username string) {
@@ -122,6 +128,7 @@ func createSessionStruct(username string) (datastruct.Session) {
 	return mSession
 }
 
+// createNewUserCSV creates a new CSV that stores user data, given a 2D array.
 func createNewBookingCSV(path string, res [][]string) error {
 	if !strings.Contains(path, constants.VenueRegex) {
 		return errors.New("Check if the file path is correct")
@@ -133,11 +140,11 @@ func createNewBookingCSV(path string, res [][]string) error {
 	defer csvFile.Close()
 
 	writer := csv.NewWriter(csvFile)
-	for _, user := range res {
-		if len(user) != 5 {
+	for _, venue := range res {
+		if len(venue) != 5 {
 			return errors.New("Check if the file path is correct")
 		}
-		line := []string{user[0], user[1], user[2], user[3], user[4]}
+		line := []string{venue[0], venue[1], venue[2], venue[3], venue[4]}
 		err := writer.Write(line)
 		if err != nil {
 			panic(err)
@@ -162,4 +169,27 @@ func editNames(username string, firstname string, lastname string) {
 		}
 	}
 	createNewUserCSV(constants.UserFile, returnRes)
+}
+
+// updateTemplateData updates the struct that's passed to the HTML template.
+// The struct is filled with venue data (booked, unbooked, all)
+func updateTemplateData(mData *datastruct.VenueAvailability, mUserClient *datastruct.UserClient) {
+	venueCSVStruct := func(i []string) datastruct.Venue {
+		var mVenue datastruct.Venue
+		mVenue.Date = i[0]
+		mVenue.Type = i[1]
+		mVenue.Capacity = i[2]
+		mVenue.BookedBy = i[3]
+		mVenue.Username = i[4]
+		return mVenue
+	}
+
+	for _, i := range utils.ReadMultipleFilesConcurrently() {
+		if i[4] == "unbook" {
+			mData.VenueUnbook = append(mData.VenueUnbook, venueCSVStruct(i))
+		} else if i[4] == mUserClient.Username {
+			mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
+		}
+		mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
+	}
 }

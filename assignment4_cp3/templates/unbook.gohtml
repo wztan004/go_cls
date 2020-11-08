@@ -7,6 +7,19 @@
 <body>
     {{$username := .MData.MyUser.Username}}
     {{template "menu" .MData.MyUser.Username}}
+
+    <h2>Unbook a Venue</h2>
+
+    <form method="post">
+        <input type="text" name="date" placeholder="Date"> e.g. 20201003 <br>
+        <input type="text" name="venueType" placeholder="Venue Type"> e.g. Ballroom <br>
+        <input type="text" name="capacity" placeholder="How many people"> e.g. 33 <br>
+        <input type="submit">
+    </form>
+
+    <p style="color:red;">
+        {{.ErrMsg}}
+    </p>
     
     {{if .MData.VenueUser}}
     
@@ -25,14 +38,7 @@
     <h2>You have not made any bookings</h2>
     {{end}}
 
-    <h2>Unbook a Venue</h2>
-
-    <form method="post">
-        <input type="text" name="date" placeholder="Date"> e.g. 20201003 <br>
-        <input type="text" name="venueType" placeholder="Venue Type"> e.g. Ballroom <br>
-        <input type="text" name="capacity" placeholder="How many people"> e.g. 33 <br>
-        <input type="submit">
-    </form>
+    
     
 </body>
 </html>

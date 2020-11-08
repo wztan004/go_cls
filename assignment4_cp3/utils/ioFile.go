@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-// WriteCSV receives a file path and input and paste the input into the given
+// WriteCSV receives a file path and paste the input into the given
 // file path.
 // Returns error if len(input) doesn't match CSV columns.
 // Reference: https://asciinema.org/a/138540
@@ -43,7 +43,7 @@ func WriteCSV(path string, input []string) (error) {
 	return nil
 }
 
-// ReadFile returns the file content.
+// ReadFile returns the content of a file, given a file path.
 func ReadFile(path string) [][]string {
 	file, err := os.Open(path)
 	if err != nil {

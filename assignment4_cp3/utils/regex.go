@@ -13,7 +13,7 @@ var (
 	w *log.Logger
 )
 
-// VerifyIC ensures that the string fulfills these conditions:
+// VerifyIC returns true if the input string fulfills these conditions:
 //
 // 1. The first letter must be S, T, F, or G.
 //
@@ -35,7 +35,7 @@ func VerifyIC(input string) (bool, error) {
 	return res, nil
 }
 
-// VerifyEmail ensures that the string fulfills these conditions:
+// VerifyEmail returns true if the string fulfills these conditions:
 //
 // 1. There must be either an alphabet, period, or dash, followed by a single @.
 //
@@ -55,7 +55,7 @@ func VerifyEmail(input string) (bool, error) {
 	
 }
 
-// VerifyPassword ensures that the string fulfills these conditions:
+// VerifyPassword returns true if the input string fulfills these conditions:
 //
 // There must be at least one lower case letter, upper case letter, a
 // number, a special character, and has at least 8 minimum and 64 maximum

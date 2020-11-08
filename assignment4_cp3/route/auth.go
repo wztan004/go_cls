@@ -14,82 +14,38 @@ import (
 	"strings"
 )
 
-var tpl *template.Template = template.Must(template.ParseGlob("templates/*"))
-var mLinkedList datastruct.SessionLinkedList
-var wlog *log.Logger // Be concerned
-var elog *log.Logger // Error problem
-var clog *log.Logger // Critical problem
+var (
+	tpl *template.Template = template.Must(template.ParseGlob("templates/*"))
+	mLinkedList datastruct.SessionLinkedList
+	wlog *log.Logger // Be concerned
+	elog *log.Logger // Error problem
+	clog *log.Logger // Critical problem
+)
 
-func initializeLogging() {
+func init() {
 	file, err := os.OpenFile(constants.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to open error log file:", err)
 	}
 	wlog = log.New(io.MultiWriter(file, os.Stderr), "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
 	elog = log.New(io.MultiWriter(file, os.Stderr), "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	clog = log.New(io.MultiWriter(file, os.Stderr), "CRITICAL: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
+
+
 // Index is the home page. If the user is logged in, it will show the user's
 // current booked venues and main actions to take in the system.
 func Index(res http.ResponseWriter, req *http.Request) {
-	isLoggedIn, mUserClient := alreadyLoggedIn(req)
+	isLoggedIn, _ := alreadyLoggedIn(req)
 	if !isLoggedIn {
 		http.Redirect(res, req, "/login", 302)
 		return
 	}
-
-	var mData datastruct.VenueAvailability
-	mData.MyUser = mUserClient
-
-	venueCSVStruct := func(i []string) datastruct.Venue {
-		var mVenue datastruct.Venue
-		mVenue.Date = i[0]
-		mVenue.Type = i[1]
-		mVenue.Capacity = i[2]
-		mVenue.BookedBy = i[3]
-		mVenue.Username = i[4]
-		return mVenue
-	}
-
-	// Reads multiple CSV venue files and update mData struct 
-	updateVenueCSV := func() {
-		for _, i := range utils.ReadMultipleFilesConcurrently() {
-			if i[4] == "unbook" {
-				mData.VenueUnbook = append(mData.VenueUnbook, venueCSVStruct(i))
-			} else if i[4] == mUserClient.Username {
-				mData.VenueUser = append(mData.VenueUser, venueCSVStruct(i))
-			}
-			mData.VenueAll = append(mData.VenueAll, venueCSVStruct(i))
-		}
-	}
-	updateVenueCSV()
-
-	if req.Method == http.MethodPost {
-		date := strings.TrimSpace(req.FormValue("date"))
-		venueType := strings.TrimSpace(req.FormValue("venueType"))
-		capacity := strings.TrimSpace(req.FormValue("capacity"))
-
-		// Goes through each CSV to see if the requested venue is in each CSV
-		// Once found, update the venue info and break off the loop.
-		for _, k := range []string{
-			constants.LatestMthLess1,
-			constants.LatestMth,
-		} {
-			hasBooked, err := EditVenue("book", k, date, venueType, capacity, mUserClient)
-			if err != nil {
-				log.Fatalln(err)
-			}
-			if hasBooked == true {
-				toIndexPage(res,req)
-				return
-			}
-		}
-		http.Error(res, "Check your input again. You can only enter available venues", http.StatusForbidden)
-		return
-	}
-	tpl.ExecuteTemplate(res, "index.gohtml", mData)
+	http.Redirect(res, req, "/book", 302)
+	return
 }
+
 
 
 
@@ -162,7 +118,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		tpl.ExecuteTemplate(res, "login.gohtml", "Not the right username/password.")
 		return
 	}
-	tpl.ExecuteTemplate(res, "login.gohtml", nil)
+	tpl.ExecuteTemplate(res, "login.gohtml", "")
 }
 
 // Logout removes the session in the server and expires the client cookie.

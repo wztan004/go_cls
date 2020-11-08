@@ -18,6 +18,7 @@ func main() {
 	http.HandleFunc("/signup", route.Signup)
 	http.HandleFunc("/login", route.Login)
 	http.HandleFunc("/logout", route.Logout)
+	http.HandleFunc("/book", route.BookVenue)
 	http.HandleFunc("/unbook", route.UnbookVenue)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	

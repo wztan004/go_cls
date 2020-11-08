@@ -1,14 +1,4 @@
-WARNING: 2020/11/03 19:01:24 auth.go:239: login failed using username: admin
-WARNING: 2020/11/03 19:14:59 auth.go:231: login failed using username: afefwa
-WARNING: 2020/11/03 19:15:46 auth.go:230: login failed using username: grgerg
-WARNING: 2020/11/03 19:19:31 auth.go:231: login failed using username: admin
-WARNING: 2020/11/03 19:19:39 auth.go:231: login failed using username: admin
-WARNING: 2020/11/03 19:19:43 auth.go:231: login failed using username: admin
-ERROR: 2020/11/07 22:06:27 menu.go:72: Unauthorized access, closing server
-ERROR: 2020/11/08 00:08:52 menu.go:72: Unauthorized access, closing server
-WARNING: 2020/11/08 00:10:36 auth.go:323: Log in failed with wrong password admin
-WARNING: 2020/11/08 14:18:52 auth.go:325: Log in failed with wrong password. Username: admin
-CRITICAL: 2020/11/08 14:42:09 menu.go:166: Unauthorized access, closing server
-ERROR: 2020/11/08 16:03:16 menu.go:73: Unauthorized access, closing server
-ERROR: 2020/11/08 16:14:45 menu.go:73: Unauthorized access. Attempted by  user
-WARNING: 2020/11/08 16:24:01 auth.go:319: Log in failed with wrong password. Username: user
+WARNING: 2020/11/08 23:23:20 auth.go:53: Log in failed with wrong password. Username: admin
+WARNING: 2020/11/08 23:23:50 unexported.go:36: Log in failed with wrong password. Username: admin
+WARNING: 2020/11/08 23:24:59 unexported.go:36: Log in failed with wrong password. Username: admin
+WARNING: 2020/11/08 23:31:08 unexported.go:36: Log in failed with wrong password. Username: admin
