@@ -1,6 +1,15 @@
-// seems to be an issue with get() index and addAtPos index. It seems to be 1-based index instead of 0-based inedx
-// I've edited official solution in get() and addAtPos
-// If you're using this for development, thoroughly test these first! E.g. negative int as argument for certain methods.
+// // 2: Node struct
+// // 2: LinkedList struct
+// // 17: addNode()
+// // 10: printAllNodes()
+// // Update base package if you changed something here
+
+// package main
+
+// import (
+// 	"errors"
+// 	"fmt"
+// )
 
 package main
 
@@ -14,15 +23,15 @@ type Node struct {
 	next *Node
 }
 
-type linkedList struct {
+type LinkedList struct {
 	head *Node
 	size int
 }
 
-func (p *linkedList) addNode(name string) error {
+func (p *LinkedList) addNode(name string) error {
 	newNode := &Node{
-		item: name,
-		next: nil,
+		item:	name,
+		next:	nil,
 	}
 
 	if p.head == nil {
@@ -34,30 +43,29 @@ func (p *linkedList) addNode(name string) error {
 		}
 		currentNode.next = newNode
 	}
+
 	p.size++
 	return nil
 }
 
-func (p *linkedList) printAllNodes() error {
-	currentNode := p.head
-	if currentNode == nil {
-		fmt.Println("Linked list is empty.")
-		return nil
+func (p *LinkedList) printAllNodes() {
+	if p.head == nil {
+		fmt.Println("nil")
+	} else {
+		currentNode := p.head
+		for currentNode.next != nil {
+			fmt.Println(currentNode.item)
+			currentNode = currentNode.next
+		}
+		fmt.Println(currentNode.item)
 	}
-	fmt.Printf("%+v\n", currentNode.item)
-	for currentNode.next != nil {
-		currentNode = currentNode.next
-		fmt.Printf("%+v\n", currentNode.item)
-	}
-
-	return nil
 }
 
-func (p *linkedList) get(index int) (string, error) {
+func (p *LinkedList) get(index int) (string, error) {
 	if p.head == nil {
 		return "", errors.New("Empty Linked list!")
 	}
-	if index < p.size {
+	if index >= 0 && index < p.size {
 		currentNode := p.head
 		for i := 0; i < index; i++ {
 			currentNode = currentNode.next
@@ -69,7 +77,7 @@ func (p *linkedList) get(index int) (string, error) {
 	return "", errors.New("Invalid Index")
 }
 
-func (p *linkedList) addAtPos(index int, name string) error {
+func (p *LinkedList) addAtPos(index int, name string) error {
 	newNode := &Node{
 		item: name,
 		next: nil,
@@ -99,7 +107,7 @@ func (p *linkedList) addAtPos(index int, name string) error {
 	}
 }
 
-func (p *linkedList) remove(index int) (string, error) {
+func (p *LinkedList) removeAtPos(index int) (string, error) {
 	var item string
 
 	if p.head == nil {
@@ -129,7 +137,7 @@ func (p *linkedList) remove(index int) (string, error) {
 
 func main() {
 
-	myList := &linkedList{nil, 0}
+	myList := &LinkedList{nil, 0}
 	fmt.Println("Created linked list")
 	fmt.Println()
 
@@ -146,12 +154,12 @@ func main() {
 	fmt.Println("Demoing get...")
 	item, error := myList.get(1)
 
-	if error == nil {
-
-		fmt.Println(item)
-	} else {
+	if error != nil {
 		fmt.Println("Invalid Index")
+	} else {
+		fmt.Println(item)
 	}
+
 	fmt.Println()
 	fmt.Println("Adding at index...")
 
