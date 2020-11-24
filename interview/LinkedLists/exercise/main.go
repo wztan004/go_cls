@@ -175,6 +175,8 @@ func main() {
 
 	myList.printAllNodes()
 
+
+	// Section 4
 	fmt.Println()
 	fmt.Println("Removing at index...")
 	x, err := myList.removeAtPos(5)
@@ -186,5 +188,4 @@ func main() {
 	}
 
 	myList.printAllNodes()
-
 }
