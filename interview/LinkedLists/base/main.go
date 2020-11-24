@@ -83,12 +83,10 @@ func (p *LinkedList) addAtPos(index int, name string) error {
 		next: nil,
 	}
 
-	// if equals, means append
-	if index <= p.size {
+	if index <= p.size && index >= 0 {
 		if index == 0 {
 			newNode.next = p.head
 			p.head = newNode
-
 		} else {
 			currentNode := p.head
 			var prevNode *Node
@@ -98,8 +96,8 @@ func (p *LinkedList) addAtPos(index int, name string) error {
 			}
 			newNode.next = currentNode
 			prevNode.next = newNode
-
 		}
+
 		p.size++
 		return nil
 	} else {
