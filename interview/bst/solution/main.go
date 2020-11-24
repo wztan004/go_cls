@@ -91,21 +91,21 @@ func (bst *BST) searchNode (currNode *Node, key string) *Node {
 	}
 }
 
-func (bst *BST) preOrderTraverse(t *Node) {
-	if t != nil {
-		fmt.Println(t.item)
-		bst.preOrderTraverse(t.left)
-		bst.preOrderTraverse(t.right)
+func (bst *BST) preOrderTraverse(currNode *Node) {
+	if currNode != nil {
+		fmt.Println(currNode.item)
+		bst.preOrderTraverse(currNode.left)
+		bst.preOrderTraverse(currNode.right)
 	}
 }
 func (bst *BST) preOrder() {
 	bst.preOrderTraverse(bst.root)
 }
-func (bst *BST) postOrderTraverse(t *Node) {
-	if t != nil {
-		bst.postOrderTraverse(t.left)
-		bst.postOrderTraverse(t.right)
-		fmt.Println(t.item)
+func (bst *BST) postOrderTraverse(currNode *Node) {
+	if currNode != nil {
+		bst.postOrderTraverse(currNode.left)
+		bst.postOrderTraverse(currNode.right)
+		fmt.Println(currNode.item)
 	}
 }
 func (bst *BST) postOrder() {
