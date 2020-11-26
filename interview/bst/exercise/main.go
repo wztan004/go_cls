@@ -39,11 +39,11 @@ func (bst *BST) Insert(item string) {
 }
 
 func (currNode *Node) insert(newNode *Node) error {
-	if newNode.item == currNode.item {
-		return errors.New("Duplicate")
+	if currNode.item == newNode.item {
+		return errors.New("Duplicate found")
 	}
 
-	if newNode.item < currNode.item {
+	if currNode.item > newNode.item {
 		if currNode.left != nil {
 			currNode.left.insert(newNode)
 		} else {
@@ -56,44 +56,39 @@ func (currNode *Node) insert(newNode *Node) error {
 			currNode.right = newNode
 		}
 	}
-
+	
 	return nil
 }
 
-func (bst *BST) inOrder() {
-	bst.inOrderTraversal(bst.root)
+func (bst *BST) InOrder() {
+	bst.inOrder(bst.root)
 }
 
-func (bst *BST) inOrderTraversal(node *Node) {
-	if node != nil {
-		bst.inOrderTraversal(node.left)
-		fmt.Println(node.item)
-		bst.inOrderTraversal(node.right)
+func (bst *BST) inOrder(currentNode *Node) {
+	if currentNode != nil {
+		bst.inOrder(currentNode.left)
+		fmt.Println(currentNode.item)
+		bst.inOrder(currentNode.right)
 	}
 }
 
-
-func (bst *BST) Search (key string) *Node {
-	return bst.searchNode(bst.root, key)
+func (bst *BST) Search(item string) *Node {
+	return bst.search(bst.root, item)
 }
 
-func (bst *BST) searchNode (currNode *Node, key string) *Node {
+func (bst *BST) search(currNode *Node, item string) *Node {
 	if currNode == nil {
 		return nil
 	}
-
-	if currNode.item == key {
+	if currNode.item == item {
 		return currNode
 	}
-
-	if currNode.item > key {
-		return bst.searchNode(currNode.left, key)
+	if currNode.item > item {
+		return bst.search(currNode.left, item)
 	} else {
-		return bst.searchNode(currNode.right, key)
+		return bst.search(currNode.right, item)
 	}
 }
-
-
 
 func main() {
 	bst := &BST{nil}
@@ -101,9 +96,12 @@ func main() {
 	for _, item := range eg {
 		bst.Insert(item)
 	}
-	fmt.Println("InOrder Traversal...")
-	bst.inOrder()
 
+	// Section 2
+	fmt.Println("InOrder Traversal...")
+	bst.InOrder()
+
+	// Section 3
 	fmt.Println("Testing search...")
 	item := "Mandy"
 	t := bst.Search(item)

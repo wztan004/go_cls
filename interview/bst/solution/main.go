@@ -2,13 +2,20 @@
 // 1: BST struct
 // 5: BST.Insert
 // 17: Node.insert
-// 1: inOrder
-// 5: inOrderTraversal
+// 1: InOrder
+// 5: inOrder
 // 1: Search
 // 13: searchNode
 
 // Mistakes
-// First try: --
+// 1x Argument of BST insert should be *Node (easier to expand node object if modification is needed)
+// 1x Returning errors are not necessary for first insert
+// 1x Did not account for same item string when inserting
+// 1x inOrder() should contain node as argument
+// 1x Both inOrder and InOrder should have *BST as parent
+// 1x bst.Search should return a Node
+// 1x node.search should have twoo methods
+// 1x a function with return object should contain return within the function
 
 // Use these variable names: Node = root, newNode, currNode; BST = bst; string = item, key
 // Update base package if you changed something here
@@ -43,7 +50,7 @@ func (currNode *Node) insert(newNode *Node) error {
 		return errors.New("Duplicate")
 	}
 
-	if newNode.item < currNode.item {
+	if currNode.item > newNode.item {
 		if currNode.left != nil {
 			currNode.left.insert(newNode)
 		} else {
@@ -60,34 +67,34 @@ func (currNode *Node) insert(newNode *Node) error {
 	return nil
 }
 
-func (bst *BST) inOrder() {
-	bst.inOrderTraversal(bst.root)
+func (bst *BST) InOrder() {
+	bst.inOrder(bst.root)
 }
 
-func (bst *BST) inOrderTraversal(node *Node) {
-	if node != nil {
-		bst.inOrderTraversal(node.left)
-		fmt.Println(node.item)
-		bst.inOrderTraversal(node.right)
+func (bst *BST) inOrder(currNode *Node) {
+	if currNode != nil {
+		bst.inOrder(currNode.left)
+		fmt.Println(currNode.item)
+		bst.inOrder(currNode.right)
 	}
 }
 
 
-func (bst *BST) Search (key string) *Node {
-	return bst.searchNode(bst.root, key)
+func (bst *BST) Search (item string) *Node {
+	return bst.searchNode(bst.root, item)
 }
 
-func (bst *BST) searchNode (currNode *Node, key string) *Node {
+func (bst *BST) searchNode (currNode *Node, item string) *Node {
 	if currNode == nil {
 		return nil
 	}
-	if currNode.item == key {
+	if currNode.item == item {
 		return currNode
 	}
-	if currNode.item > key {
-		return bst.searchNode(currNode.left, key)
+	if currNode.item > item {
+		return bst.searchNode(currNode.left, item)
 	} else {
-		return bst.searchNode(currNode.right, key)
+		return bst.searchNode(currNode.right, item)
 	}
 }
 
@@ -122,8 +129,7 @@ func main() {
 
 	// Section 2
 	fmt.Println("InOrder Traversal...")
-	bst.inOrder()
-
+	bst.InOrder()
 
 	// Section 3
 	fmt.Println("Testing search...")
