@@ -1,29 +1,18 @@
-// // 2: Node struct
-// // 2: LinkedList struct
-// // 17: addNode()
-// // 10: printAllNodes()
-// // 14: get()
-// // 25: addAtPos()
-// // 28: removeAtPos()
+// 14: get()
+// 25: addAtPos()
+// 28: removeAtPos()
 
-// // Mistakes
-// // First try: get() did not check for index edge cases
+// Mistakes
+// First try: get() did not check for index edge cases
 
-// // Use these variable names: LinkedList = p; Node = newNode; string = name
-// // Update base package if you changed something here
-
-// package main
-
-// import (
-// 	"errors"
-// 	"fmt"
-// )
+// Use these variable names: LinkedList = p; Node = newNode; string = name
+// Update base package if you changed something here
 
 package main
 
 import (
-	"errors"
 	"fmt"
+	"errors"
 )
 
 type Node struct {
@@ -36,67 +25,65 @@ type LinkedList struct {
 	size int
 }
 
-func (p *LinkedList) addNode(name string) error {
+func (list *LinkedList) addNode (item string) {
 	newNode := &Node{
-		item:	name,
-		next:	nil,
+		item,
+		nil,
 	}
 
-	if p.head == nil {
-		p.head = newNode
+	if list.head == nil {
+		list.head = newNode
 	} else {
-		currentNode := p.head
-		for currentNode.next != nil {
-			currentNode = currentNode.next
+		currNode := list.head
+		for currNode.next != nil {
+			currNode = currNode.next
 		}
-		currentNode.next = newNode
+		currNode.next = newNode
 	}
 
-	p.size++
-	return nil
+	list.size++
 }
 
-func (p *LinkedList) printAllNodes() {
-	if p.head == nil {
-		fmt.Println("nil")
+func (list *LinkedList) printAllNodes () {
+	if list.head == nil {
+		fmt.Println("Blank!")
 	} else {
-		currentNode := p.head
-		for currentNode.next != nil {
-			fmt.Println(currentNode.item)
-			currentNode = currentNode.next
+		currNode := list.head
+		for currNode.next != nil {
+			fmt.Println(currNode.item)
+			currNode = currNode.next
 		}
-		fmt.Println(currentNode.item)
+		fmt.Println(currNode.item)
 	}
 }
 
-func (p *LinkedList) get(index int) (string, error) {
-	if p.head == nil {
-		return "", errors.New("Empty Linked list!")
+func (list *LinkedList) get(index int) (string, error) {
+	if index < 0 || index >= list.size {
+		return "", errors.New("Invalid index")
 	}
-	if index >= 0 && index < p.size {
-		currentNode := p.head
-		for i := 0; i < index; i++ {
-			currentNode = currentNode.next
-		}
-		item := currentNode.item
-		return item, nil
 
+	currNode := list.head
+	for i:=0; i < list.size; i++ {
+		if i == index {
+			return currNode.item, nil
+		}
+		currNode = currNode.next
 	}
-	return "", errors.New("Invalid Index")
+	return "", errors.New("Not found")
 }
 
-func (p *LinkedList) addAtPos(index int, name string) error {
+func (list *LinkedList) addAtPos(index int, name string) error {
 	newNode := &Node{
 		item: name,
 		next: nil,
 	}
 
-	if index <= p.size && index >= 0 {
+	if index <= list.size && index >= 0 {
 		if index == 0 {
-			newNode.next = p.head
-			p.head = newNode
+			newNode.next = list.head
+			list.head = newNode
 		} else {
-			currentNode := p.head
+			currentNode := list.head
 			var prevNode *Node
 			for i := 0; i < index; i++ {
 				prevNode = currentNode
@@ -106,44 +93,31 @@ func (p *LinkedList) addAtPos(index int, name string) error {
 			prevNode.next = newNode
 		}
 
-		p.size++
+		list.size++
 		return nil
 	} else {
 		return errors.New("Invalid Index")
 	}
 }
 
-func (p *LinkedList) removeAtPos(index int) (string, error) {
-	var item string
-
-	if p.head == nil {
-		return "", errors.New("Empty Linked list!")
+func (list *LinkedList) removeAtPos(index int) (string, error) {
+	if index < 0 || index >= list.size {
+		return "", errors.New("Invalid index")
+	}
+	if index == 0 {
+		removedNode := list.head
+		list.head = list.head.next
+		return removedNode.item, nil
 	}
 
-	if index >= 0 && index < p.size {
-		if index == 0 {
-			item = p.head.item
-			p.head = p.head.next
-		} else {
-			var currentNode *Node = p.head
-			var prevNode *Node
-
-			for i := 0; i < index; i++ {
-				prevNode = currentNode
-				currentNode = currentNode.next
-			}
-
-			item = currentNode.item
-			prevNode.next = currentNode.next
-		}
-
-		return item, nil
+	currNode := list.head
+	for currNode.next != nil {
+		
 	}
 
-	p.size--
-	return "", errors.New("Invalid index")
+	list.size--
+	return "", errors.New("Invalid")
 }
-
 
 
 func main() {
@@ -164,7 +138,7 @@ func main() {
 
 	// Section 2
 	fmt.Println("Demoing get...")
-	item, error := myList.get(3)
+	item, error := myList.get(4)
 
 	if error != nil {
 		fmt.Println("Invalid Index")
@@ -175,7 +149,7 @@ func main() {
 	// Section 3
 	fmt.Println()
 	fmt.Println("Adding at index...")
-	err := myList.addAtPos(3, "Chris")
+	err := myList.addAtPos(0, "Chris")
 
 	if err != nil {
 		fmt.Println(err)
@@ -184,16 +158,16 @@ func main() {
 	myList.printAllNodes()
 
 
-	// Section 4
-	fmt.Println()
-	fmt.Println("Removing at index...")
-	x, err := myList.removeAtPos(5)
+	// // Section 4
+	// fmt.Println()
+	// fmt.Println("Removing at index...")
+	// x, err := myList.removeAtPos(5)
 	
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Removed", x)
-	}
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println("Removed", x)
+	// }
 
-	myList.printAllNodes()
+	// myList.printAllNodes()
 }

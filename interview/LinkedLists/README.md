@@ -9,8 +9,9 @@ for i := 0; i < p.size - 1; i++ {
 	currentNode = currentNode.next
 }
 
-# Move to a specified index
+# Adding and removing
 for i := 0; i < index; i++ {
+	prevNode = currentNode
 	currentNode = currentNode.next
 }
 
@@ -19,5 +20,5 @@ for i := 0; i < index; i++ {
 // I've edited official solution in get() and addAtPos
 // If you're using this for development, thoroughly test these first! E.g. negative int as argument for certain methods.
 
-// If you want to have additional features in the code (contains, swap, prepend, indexOf, isEmpty, Clear, Sort
+// If you want to have additional features in the code (contains, swap, prepend, indexOf, isEmpty, Clear, Sort)
 // https://github.com/emirpasic/gods/blob/master/lists/singlylinkedlist/singlylinkedlist.go#L25
